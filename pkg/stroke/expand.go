@@ -6,7 +6,7 @@ import (
 	"gioui.org/f32"
 	"gioui.org/op"
 	"gioui.org/op/clip"
-	"github.com/andybalholm/stroke"
+	andyStroke "github.com/andybalholm/stroke"
 )
 
 // expandStroke converts a stroke.Path to a clip.PathSpec representing the stroked outline.
@@ -14,15 +14,15 @@ import (
 func ExpandStroke(s Path, width float32, join JoinStyle, cap CapStyle,
 	miter float32, dash []float32, dash0 float32) clip.PathSpec {
 	// Use the andybalholm/stroke library to expand the path
-	var opt stroke.Options
+	var opt andyStroke.Options
 	opt.Width = width
 	opt.MiterLimit = miter
 	opt.Cap = cap
 	opt.Join = join
 
 	// Convert stroke.Path to [][]stroke.Segment
-	var path [][]stroke.Segment
-	var contour []stroke.Segment
+	var path [][]andyStroke.Segment
+	var contour []andyStroke.Segment
 	var pen f32.Point
 
 	for _, seg := range s.Segments {
@@ -34,38 +34,38 @@ func ExpandStroke(s Path, width float32, join JoinStyle, cap CapStyle,
 			}
 			pen = seg.args[0]
 		case segOpLineTo:
-			contour = append(contour, stroke.LinearSegment(
-				stroke.Point(pen),
-				stroke.Point(seg.args[0]),
+			contour = append(contour, andyStroke.LinearSegment(
+				andyStroke.Point(pen),
+				andyStroke.Point(seg.args[0]),
 			))
 			pen = seg.args[0]
 		case segOpQuadTo:
-			contour = append(contour, stroke.QuadraticSegment(
-				stroke.Point(pen),
-				stroke.Point(seg.args[0]),
-				stroke.Point(seg.args[1]),
+			contour = append(contour, andyStroke.QuadraticSegment(
+				andyStroke.Point(pen),
+				andyStroke.Point(seg.args[0]),
+				andyStroke.Point(seg.args[1]),
 			))
 			pen = seg.args[1]
 		case segOpCubeTo:
-			contour = append(contour, stroke.Segment{
-				Start: stroke.Point(pen),
-				CP1:   stroke.Point(seg.args[0]),
-				CP2:   stroke.Point(seg.args[1]),
-				End:   stroke.Point(seg.args[2]),
+			contour = append(contour, andyStroke.Segment{
+				Start: andyStroke.Point(pen),
+				CP1:   andyStroke.Point(seg.args[0]),
+				CP2:   andyStroke.Point(seg.args[1]),
+				End:   andyStroke.Point(seg.args[2]),
 			})
 			pen = seg.args[2]
 		case segOpArcTo:
 			// ArcTo is not used in the basic Skia API, but handle it for completeness
 			var (
-				start  = stroke.Point(pen)
-				center = stroke.Point(seg.args[0])
+				start  = andyStroke.Point(pen)
+				center = andyStroke.Point(seg.args[0])
 				angle  = seg.args[1].X
 			)
 			if absF32(angle) > math.Pi {
-				contour = stroke.AppendArc(contour, start, center, angle)
+				contour = andyStroke.AppendArc(contour, start, center, angle)
 				pen = f32.Point(contour[len(contour)-1].End)
 			} else {
-				out := stroke.ArcSegment(start, center, angle)
+				out := andyStroke.ArcSegment(start, center, angle)
 				contour = append(contour, out)
 				pen = f32.Point(out.End)
 			}
@@ -77,11 +77,11 @@ func ExpandStroke(s Path, width float32, join JoinStyle, cap CapStyle,
 
 	// Apply dashing if provided
 	if len(dash) > 0 {
-		path = stroke.Dash(path, dash, dash0)
+		path = andyStroke.Dash(path, dash, dash0)
 	}
 
 	// Stroke the path
-	stroked := stroke.Stroke(path, opt)
+	stroked := andyStroke.Stroke(path, opt)
 
 	// Convert back to clip.Path
 	var ops op.Ops

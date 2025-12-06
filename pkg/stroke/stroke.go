@@ -10,9 +10,10 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"github.com/andybalholm/stroke"
+	andyStroke "github.com/andybalholm/stroke"
 )
 
-// Path defines the shape of a Stroke.
+// Path defines the shape of a andyStroke.
 type Path struct {
 	Segments []Segment
 }
@@ -24,13 +25,13 @@ type Segment struct {
 	args [3]f32.Point
 }
 
-// Dashes defines the dash pattern of a Stroke.
+// Dashes defines the dash pattern of a andyStroke.
 type Dashes struct {
 	Phase  float32
 	Dashes []float32
 }
 
-// Stroke defines a stroke.
+// Stroke defines a andyStroke.
 type Stroke struct {
 	Path  Path
 	Width float32 // Width of the stroked path.
@@ -97,13 +98,13 @@ func ArcTo(center f32.Point, angle float32) Segment {
 	return s
 }
 
-// Op returns a clip operation that approximates stroke.
+// Op returns a clip operation that approximates andyStroke.
 func (s Stroke) Op(ops *op.Ops) clip.Op {
 	if len(s.Path.Segments) == 0 {
 		return clip.Op{}
 	}
 
-	// Use the stroke package to find the outline of the stroke.
+	// Use the stroke package to find the outline of the andyStroke.
 	var path [][]stroke.Segment
 	var contour []stroke.Segment
 	var pen f32.Point
@@ -117,31 +118,31 @@ func (s Stroke) Op(ops *op.Ops) clip.Op {
 			}
 			pen = seg.args[0]
 		case segOpLineTo:
-			contour = append(contour, stroke.LinearSegment(stroke.Point(pen), stroke.Point(seg.args[0])))
+			contour = append(contour, andyStroke.LinearSegment(stroke.Point(pen), andyStroke.Point(seg.args[0])))
 			pen = seg.args[0]
 		case segOpQuadTo:
-			contour = append(contour, stroke.QuadraticSegment(stroke.Point(pen), stroke.Point(seg.args[0]), stroke.Point(seg.args[1])))
+			contour = append(contour, andyStroke.QuadraticSegment(stroke.Point(pen), andyStroke.Point(seg.args[0]), andyStroke.Point(seg.args[1])))
 			pen = seg.args[1]
 		case segOpCubeTo:
-			contour = append(contour, stroke.Segment{
-				Start: stroke.Point(pen),
-				CP1:   stroke.Point(seg.args[0]),
-				CP2:   stroke.Point(seg.args[1]),
-				End:   stroke.Point(seg.args[2]),
+			contour = append(contour, andyStroke.Segment{
+				Start: andyStroke.Point(pen),
+				CP1:   andyStroke.Point(seg.args[0]),
+				CP2:   andyStroke.Point(seg.args[1]),
+				End:   andyStroke.Point(seg.args[2]),
 			})
 			pen = seg.args[2]
 		case segOpArcTo:
 			var (
-				start  = stroke.Point(pen)
-				center = stroke.Point(seg.args[0])
+				start  = andyStroke.Point(pen)
+				center = andyStroke.Point(seg.args[0])
 				angle  = seg.args[1].X
 			)
 			switch {
 			case absF32(angle) > math.Pi:
-				contour = stroke.AppendArc(contour, start, center, angle)
+				contour = andyStroke.AppendArc(contour, start, center, angle)
 				pen = f32.Point(contour[len(contour)-1].End)
 			default:
-				out := stroke.ArcSegment(start, center, angle)
+				out := andyStroke.ArcSegment(start, center, angle)
 				contour = append(contour, out)
 				pen = f32.Point(out.End)
 			}
@@ -152,32 +153,32 @@ func (s Stroke) Op(ops *op.Ops) clip.Op {
 	}
 
 	if len(s.Dashes.Dashes) > 0 {
-		path = stroke.Dash(path, s.Dashes.Dashes, s.Dashes.Phase)
+		path = andyStroke.Dash(path, s.Dashes.Dashes, s.Dashes.Phase)
 	}
 
-	var opt stroke.Options
+	var opt andyStroke.Options
 	opt.Width = s.Width
 	opt.MiterLimit = s.Miter
 	switch s.Cap {
 	case RoundCap:
-		opt.Cap = stroke.RoundCap
+		opt.Cap = andyStroke.RoundCap
 	case SquareCap:
-		opt.Cap = stroke.SquareCap
+		opt.Cap = andyStroke.SquareCap
 	case FlatCap:
-		opt.Cap = stroke.FlatCap
+		opt.Cap = andyStroke.FlatCap
 	case TriangularCap:
-		opt.Cap = stroke.TriangularCap
+		opt.Cap = andyStroke.TriangularCap
 	}
 	switch s.Join {
 	case RoundJoin:
-		opt.Join = stroke.RoundJoin
+		opt.Join = andyStroke.RoundJoin
 	case BevelJoin:
-		opt.Join = stroke.BevelJoin
+		opt.Join = andyStroke.BevelJoin
 	case MiterJoin:
-		opt.Join = stroke.MiterJoin
+		opt.Join = andyStroke.MiterJoin
 	}
 
-	stroked := stroke.Stroke(path, opt)
+	stroked := andyStroke.Stroke(path, opt)
 
 	// Output path data.
 	var outline clip.Path
