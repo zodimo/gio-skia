@@ -95,26 +95,46 @@ func (c *canvas) DrawPath(p Path) {
 	// Build stroke.Path in parallel
 	var s stroke.Path
 	var start f32.Point
+	var current f32.Point
 	for _, cmd := range p.unwrap() {
 		switch cmd.verb {
 		case 0: // MoveTo
 			pt := f32.Pt(cmd.pts[0], cmd.pts[1])
+			b.MoveTo(pt)
 			s.Segments = append(s.Segments, stroke.MoveTo(pt))
 			start = pt
+			current = pt
 		case 1: // LineTo
 			pt := f32.Pt(cmd.pts[0], cmd.pts[1])
+			b.LineTo(pt)
 			s.Segments = append(s.Segments, stroke.LineTo(pt))
+			current = pt
 		case 2: // QuadTo
 			ctrl := f32.Pt(cmd.pts[0], cmd.pts[1])
 			end := f32.Pt(cmd.pts[2], cmd.pts[3])
+			// Convert quadratic to cubic: CP1 = current + 2/3*(ctrl - current), CP2 = end + 2/3*(ctrl - end)
+			cp1 := f32.Pt(
+				current.X+2.0/3.0*(ctrl.X-current.X),
+				current.Y+2.0/3.0*(ctrl.Y-current.Y),
+			)
+			cp2 := f32.Pt(
+				end.X+2.0/3.0*(ctrl.X-end.X),
+				end.Y+2.0/3.0*(ctrl.Y-end.Y),
+			)
+			b.CubeTo(cp1, cp2, end)
 			s.Segments = append(s.Segments, stroke.QuadTo(ctrl, end))
+			current = end
 		case 3: // CubeTo
 			c1 := f32.Pt(cmd.pts[0], cmd.pts[1])
 			c2 := f32.Pt(cmd.pts[2], cmd.pts[3])
 			end := f32.Pt(cmd.pts[4], cmd.pts[5])
+			b.CubeTo(c1, c2, end)
 			s.Segments = append(s.Segments, stroke.CubeTo(c1, c2, end))
+			current = end
 		case 4: // Close
+			b.LineTo(start)
 			s.Segments = append(s.Segments, stroke.LineTo(start))
+			current = start
 		}
 	}
 

@@ -143,6 +143,9 @@ func Run(window *app.Window) error {
 			// Row 3: Complex filled shapes
 			startY3 := startY + spacing*2
 
+			// Reset to fill mode for Row 3 shapes
+			c.Fill()
+
 			// Rounded rectangle (approximated with arcs)
 			c.SetColor(color.NRGBA{R: 255, G: 150, B: 200, A: 255})
 			p9 := skia.NewPath()
@@ -202,6 +205,9 @@ func Run(window *app.Window) error {
 			}
 			c.DrawPath(p11)
 
+			// Reset to fill mode for gear shape
+			c.Fill()
+
 			// Gear shape
 			c.SetColor(color.NRGBA{R: 200, G: 200, B: 100, A: 255})
 			p12 := skia.NewPath()
@@ -233,4 +239,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-
