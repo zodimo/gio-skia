@@ -311,6 +311,8 @@ func Run(window *app.Window) error {
 			c.DrawPath(heart)
 			c.Restore()
 
+			window.Invalidate()
+
 			e.Frame(&ops)
 		}
 	}
