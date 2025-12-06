@@ -42,14 +42,7 @@ type Path interface { /* unexported */
 }
 
 // ── Stroke configuration ────────────────────────────────────────────────
-type StrokeOpts struct {
-	Width float32          // Stroke width in pixels
-	Miter float32          // Miter limit (default 4)
-	Cap   stroke.CapStyle  // Line cap style
-	Join  stroke.JoinStyle // Line join style
-	Dash  []float32        // Dash pattern (optional)
-	Dash0 float32          // Dash phase
-}
+type StrokeOpts = stroke.StrokeOpts
 
 const (
 	// MiterJoin joins path segments with a sharp corner.
@@ -60,3 +53,9 @@ const (
 	// BevelJoin joins path segments with sharp bevels.
 	BevelJoin = stroke.BevelJoin
 )
+
+type Paint struct {
+	Color  color.NRGBA
+	Stroke StrokeOpts
+	Fill   bool
+}

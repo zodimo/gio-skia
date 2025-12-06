@@ -21,22 +21,6 @@ type context struct {
 	paint Paint
 }
 
-type Paint struct {
-	Color  color.NRGBA
-	Stroke StrokeOpts
-	Fill   bool
-}
-
-type path struct {
-	// Build both representations simultaneously
-	verbs []pathOp
-}
-
-type pathOp struct {
-	verb uint8
-	pts  [6]float32
-}
-
 // NewCanvas returns a Canvas implementation backed by Gio's GPU renderer.
 func NewCanvas(ops *op.Ops) Canvas {
 	return &canvas{
@@ -101,91 +85,36 @@ func (c *canvas) Stroke() {
 	c.stack[len(c.stack)-1].paint.Fill = false
 }
 
-// ── Path construction ─────────────────────────────────────────────────
-
-func NewPath() Path {
-	return &path{}
-}
-
-func (p *path) MoveTo(x, y float32) {
-	p.verbs = append(p.verbs, pathOp{verb: 0, pts: [6]float32{x, y}})
-}
-
-func (p *path) LineTo(x, y float32) {
-	p.verbs = append(p.verbs, pathOp{verb: 1, pts: [6]float32{x, y}})
-}
-
-func (p *path) QuadTo(cx, cy, x, y float32) {
-	p.verbs = append(p.verbs, pathOp{verb: 2, pts: [6]float32{cx, cy, x, y}})
-}
-
-func (p *path) CubeTo(cx1, cy1, cx2, cy2, x, y float32) {
-	p.verbs = append(p.verbs, pathOp{verb: 3, pts: [6]float32{cx1, cy1, cx2, cy2, x, y}})
-}
-
-func (p *path) Close() {
-	p.verbs = append(p.verbs, pathOp{verb: 4})
-}
-
-func (p *path) AddRect(x, y, w, h float32) {
-	p.MoveTo(x, y)
-	p.LineTo(x+w, y)
-	p.LineTo(x+w, y+h)
-	p.LineTo(x, y+h)
-	p.Close()
-}
-
-func (p *path) AddCircle(cx, cy, r float32) {
-	const k = 0.5522848
-	p.MoveTo(cx+r, cy)
-	p.CubeTo(cx+r, cy+k*r, cx+k*r, cy+r, cx, cy+r)
-	p.CubeTo(cx-k*r, cy+r, cx-r, cy+k*r, cx-r, cy)
-	p.CubeTo(cx-r, cy-k*r, cx-k*r, cy-r, cx, cy-r)
-	p.CubeTo(cx+k*r, cy-r, cx+r, cy-k*r, cx+r, cy)
-}
-
-func (p *path) unwrap() []pathOp {
-	return p.verbs
-}
-
-// ── Drawing ───────────────────────────────────────────────────────────
-
 func (c *canvas) DrawPath(p Path) {
-	save := op.TransformOp{}.Push(c.ops)
-	xform := c.stack[len(c.stack)-1].xform
-	op.Affine(xform).Add(c.ops)
+	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
+	defer transformSave.Pop()
 
-	// Build clip.Path
+	// Build paths
 	var b clip.Path
 	b.Begin(c.ops)
-
 	// Build stroke.Path in parallel
 	var s stroke.Path
-
+	var start f32.Point
 	for _, cmd := range p.unwrap() {
 		switch cmd.verb {
-		case 0:
+		case 0: // MoveTo
 			pt := f32.Pt(cmd.pts[0], cmd.pts[1])
-			b.MoveTo(pt)
 			s.Segments = append(s.Segments, stroke.MoveTo(pt))
-		case 1:
+			start = pt
+		case 1: // LineTo
 			pt := f32.Pt(cmd.pts[0], cmd.pts[1])
-			b.LineTo(pt)
 			s.Segments = append(s.Segments, stroke.LineTo(pt))
-		case 2:
+		case 2: // QuadTo
 			ctrl := f32.Pt(cmd.pts[0], cmd.pts[1])
 			end := f32.Pt(cmd.pts[2], cmd.pts[3])
-			b.QuadTo(ctrl, end)
 			s.Segments = append(s.Segments, stroke.QuadTo(ctrl, end))
-		case 3:
+		case 3: // CubeTo
 			c1 := f32.Pt(cmd.pts[0], cmd.pts[1])
 			c2 := f32.Pt(cmd.pts[2], cmd.pts[3])
 			end := f32.Pt(cmd.pts[4], cmd.pts[5])
-			b.CubeTo(c1, c2, end)
 			s.Segments = append(s.Segments, stroke.CubeTo(c1, c2, end))
-		case 4:
-			b.Close()
-			// No explicit close needed for stroke.Path
+		case 4: // Close
+			s.Segments = append(s.Segments, stroke.LineTo(start))
 		}
 	}
 
@@ -193,21 +122,23 @@ func (c *canvas) DrawPath(p Path) {
 	paintCfg := c.stack[len(c.stack)-1].paint
 
 	if paintCfg.Fill {
-		stack := clip.Outline{Path: pathSpec}.Op().Push(c.ops)
+		clipSave := clip.Outline{Path: pathSpec}.Op().Push(c.ops)
 		paint.ColorOp{Color: paintCfg.Color}.Add(c.ops)
 		paint.PaintOp{}.Add(c.ops)
-		stack.Pop()
+		clipSave.Pop()
 	} else {
-		// Use expandStroke to get stroked path
-		strokePathSpec := stroke.ExpandStroke(s, paintCfg.Stroke.Width,
-			paintCfg.Stroke.Join, paintCfg.Stroke.Cap,
-			paintCfg.Stroke.Miter, paintCfg.Stroke.Dash, paintCfg.Stroke.Dash0)
-
-		stack := clip.Outline{Path: strokePathSpec}.Op().Push(c.ops)
-		paint.ColorOp{Color: paintCfg.Color}.Add(c.ops)
-		paint.PaintOp{}.Add(c.ops)
-		stack.Pop()
+		contours := stroke.StrokedContours(s, paintCfg.Stroke)
+		var stroked clip.Path
+		stroked.Begin(c.ops)
+		for _, contour := range contours {
+			for i, seg := range contour {
+				if i == 0 {
+					stroked.MoveTo(f32.Point(seg.Start))
+				}
+				stroked.CubeTo(f32.Point(seg.CP1), f32.Point(seg.CP2), f32.Point(seg.End))
+			}
+		}
+		strokePathSpec := stroked.End()
+		paint.FillShape(c.ops, paintCfg.Color, clip.Outline{Path: strokePathSpec}.Op())
 	}
-
-	save.Pop()
 }
