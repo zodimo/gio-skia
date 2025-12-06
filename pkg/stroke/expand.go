@@ -26,40 +26,40 @@ func ExpandStroke(s Path, width float32, join JoinStyle, cap CapStyle,
 	var pen f32.Point
 
 	for _, seg := range s.Segments {
-		switch seg.op {
+		switch seg.Op {
 		case segOpMoveTo:
 			if len(contour) > 0 {
 				path = append(path, contour)
 				contour = nil
 			}
-			pen = seg.args[0]
+			pen = seg.Args[0]
 		case segOpLineTo:
 			contour = append(contour, andyStroke.LinearSegment(
 				andyStroke.Point(pen),
-				andyStroke.Point(seg.args[0]),
+				andyStroke.Point(seg.Args[0]),
 			))
-			pen = seg.args[0]
+			pen = seg.Args[0]
 		case segOpQuadTo:
 			contour = append(contour, andyStroke.QuadraticSegment(
 				andyStroke.Point(pen),
-				andyStroke.Point(seg.args[0]),
-				andyStroke.Point(seg.args[1]),
+				andyStroke.Point(seg.Args[0]),
+				andyStroke.Point(seg.Args[1]),
 			))
-			pen = seg.args[1]
+			pen = seg.Args[1]
 		case segOpCubeTo:
 			contour = append(contour, andyStroke.Segment{
 				Start: andyStroke.Point(pen),
-				CP1:   andyStroke.Point(seg.args[0]),
-				CP2:   andyStroke.Point(seg.args[1]),
-				End:   andyStroke.Point(seg.args[2]),
+				CP1:   andyStroke.Point(seg.Args[0]),
+				CP2:   andyStroke.Point(seg.Args[1]),
+				End:   andyStroke.Point(seg.Args[2]),
 			})
-			pen = seg.args[2]
+			pen = seg.Args[2]
 		case segOpArcTo:
 			// ArcTo is not used in the basic Skia API, but handle it for completeness
 			var (
 				start  = andyStroke.Point(pen)
-				center = andyStroke.Point(seg.args[0])
-				angle  = seg.args[1].X
+				center = andyStroke.Point(seg.Args[0])
+				angle  = seg.Args[1].X
 			)
 			if absF32(angle) > math.Pi {
 				contour = andyStroke.AppendArc(contour, start, center, angle)

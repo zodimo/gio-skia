@@ -12,16 +12,25 @@ import (
 	andyStroke "github.com/andybalholm/stroke"
 )
 
+type StrokeOpts struct {
+	Width float32   // Stroke width in pixels
+	Miter float32   // Miter limit (default 4)
+	Cap   CapStyle  // Line cap style
+	Join  JoinStyle // Line join style
+	Dash  []float32 // Dash pattern (optional)
+	Dash0 float32   // Dash phase
+}
+
 // Path defines the shape of a andyStroke.
 type Path struct {
 	Segments []Segment
 }
 
 type Segment struct {
-	// op is the operator.
-	op segmentOp
-	// args is up to three (x, y) coordinates.
-	args [3]f32.Point
+	// Op is the operator.
+	Op segmentOp
+	// Args is up to three (x, y) coordinates.
+	Args [3]f32.Point
 }
 
 // Dashes defines the dash pattern of a andyStroke.
@@ -55,45 +64,45 @@ const (
 
 func MoveTo(p f32.Point) Segment {
 	s := Segment{
-		op: segOpMoveTo,
+		Op: segOpMoveTo,
 	}
-	s.args[0] = p
+	s.Args[0] = p
 	return s
 }
 
 func LineTo(p f32.Point) Segment {
 	s := Segment{
-		op: segOpLineTo,
+		Op: segOpLineTo,
 	}
-	s.args[0] = p
+	s.Args[0] = p
 	return s
 }
 
 func QuadTo(ctrl, end f32.Point) Segment {
 	s := Segment{
-		op: segOpQuadTo,
+		Op: segOpQuadTo,
 	}
-	s.args[0] = ctrl
-	s.args[1] = end
+	s.Args[0] = ctrl
+	s.Args[1] = end
 	return s
 }
 
 func CubeTo(ctrl0, ctrl1, end f32.Point) Segment {
 	s := Segment{
-		op: segOpCubeTo,
+		Op: segOpCubeTo,
 	}
-	s.args[0] = ctrl0
-	s.args[1] = ctrl1
-	s.args[2] = end
+	s.Args[0] = ctrl0
+	s.Args[1] = ctrl1
+	s.Args[2] = end
 	return s
 }
 
 func ArcTo(center f32.Point, angle float32) Segment {
 	s := Segment{
-		op: segOpArcTo,
+		Op: segOpArcTo,
 	}
-	s.args[0] = center
-	s.args[1].X = angle
+	s.Args[0] = center
+	s.Args[1].X = angle
 	return s
 }
 
@@ -109,32 +118,32 @@ func (s Stroke) Op(ops *op.Ops) clip.Op {
 	var pen f32.Point
 
 	for _, seg := range s.Path.Segments {
-		switch seg.op {
+		switch seg.Op {
 		case segOpMoveTo:
 			if len(contour) > 0 {
 				path = append(path, contour)
 				contour = nil
 			}
-			pen = seg.args[0]
+			pen = seg.Args[0]
 		case segOpLineTo:
-			contour = append(contour, andyStroke.LinearSegment(andyStroke.Point(pen), andyStroke.Point(seg.args[0])))
-			pen = seg.args[0]
+			contour = append(contour, andyStroke.LinearSegment(andyStroke.Point(pen), andyStroke.Point(seg.Args[0])))
+			pen = seg.Args[0]
 		case segOpQuadTo:
-			contour = append(contour, andyStroke.QuadraticSegment(andyStroke.Point(pen), andyStroke.Point(seg.args[0]), andyStroke.Point(seg.args[1])))
-			pen = seg.args[1]
+			contour = append(contour, andyStroke.QuadraticSegment(andyStroke.Point(pen), andyStroke.Point(seg.Args[0]), andyStroke.Point(seg.Args[1])))
+			pen = seg.Args[1]
 		case segOpCubeTo:
 			contour = append(contour, andyStroke.Segment{
 				Start: andyStroke.Point(pen),
-				CP1:   andyStroke.Point(seg.args[0]),
-				CP2:   andyStroke.Point(seg.args[1]),
-				End:   andyStroke.Point(seg.args[2]),
+				CP1:   andyStroke.Point(seg.Args[0]),
+				CP2:   andyStroke.Point(seg.Args[1]),
+				End:   andyStroke.Point(seg.Args[2]),
 			})
-			pen = seg.args[2]
+			pen = seg.Args[2]
 		case segOpArcTo:
 			var (
 				start  = andyStroke.Point(pen)
-				center = andyStroke.Point(seg.args[0])
-				angle  = seg.args[1].X
+				center = andyStroke.Point(seg.Args[0])
+				angle  = seg.Args[1].X
 			)
 			switch {
 			case absF32(angle) > math.Pi:

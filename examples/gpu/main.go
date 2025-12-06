@@ -7,13 +7,13 @@ import (
 
 	"gioui.org/app"
 	"gioui.org/op"
+	"gioui.org/op/paint"
 	"github.com/zodimo/gio-skia/skia"
 )
 
 func main() {
 	go func() {
 		w := new(app.Window)
-
 		if err := Run(w); err != nil {
 			log.Fatal(err)
 		}
@@ -29,26 +29,21 @@ func Run(window *app.Window) error {
 		case app.DestroyEvent:
 			return frameEvent.Err
 		case app.FrameEvent:
+			// Reset ops for new frame
+			ops.Reset()
+
+			// White background — no path, no clip
+			paint.ColorOp{Color: color.NRGBA{R: 255, G: 255, B: 255, A: 255}}.Add(&ops)
+			paint.PaintOp{}.Add(&ops)
+
+			// Draw test rectangle
 			c := skia.NewCanvas(&ops)
-			c.SetColor(color.NRGBA{R: 255, G: 200, B: 0, A: 255})
-			c.Fill()
-
-			c.Save()
-			c.Translate(100, 100)
-			c.Scale(2, 2)
-
 			p := skia.NewPath()
-			p.AddCircle(0, 0, 40)
-			c.SetColor(color.NRGBA{R: 0, G: 0, B: 200, A: 255})
+			p.AddRect(10, 10, 100, 50)
+			c.SetStroke(skia.StrokeOpts{Width: 3, Miter: 4})
+			c.SetColor(color.NRGBA{R: 255, A: 255})
 			c.DrawPath(p)
 
-			p2 := skia.NewPath()
-			p2.AddRect(-50, -50, 100, 100)
-			c.SetStroke(skia.StrokeOpts{Width: 3, Join: skia.RoundJoin})
-			c.SetColor(color.NRGBA{R: 200, G: 0, B: 0, A: 255})
-			c.DrawPath(p2)
-
-			c.Restore()
 			frameEvent.Frame(&ops)
 		}
 	}
