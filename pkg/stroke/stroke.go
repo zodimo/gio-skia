@@ -9,7 +9,6 @@ import (
 	"gioui.org/f32"
 	"gioui.org/op"
 	"gioui.org/op/clip"
-	"github.com/andybalholm/stroke"
 	andyStroke "github.com/andybalholm/stroke"
 )
 
@@ -105,8 +104,8 @@ func (s Stroke) Op(ops *op.Ops) clip.Op {
 	}
 
 	// Use the stroke package to find the outline of the andyStroke.
-	var path [][]stroke.Segment
-	var contour []stroke.Segment
+	var path [][]andyStroke.Segment
+	var contour []andyStroke.Segment
 	var pen f32.Point
 
 	for _, seg := range s.Path.Segments {
@@ -118,10 +117,10 @@ func (s Stroke) Op(ops *op.Ops) clip.Op {
 			}
 			pen = seg.args[0]
 		case segOpLineTo:
-			contour = append(contour, andyStroke.LinearSegment(stroke.Point(pen), andyStroke.Point(seg.args[0])))
+			contour = append(contour, andyStroke.LinearSegment(andyStroke.Point(pen), andyStroke.Point(seg.args[0])))
 			pen = seg.args[0]
 		case segOpQuadTo:
-			contour = append(contour, andyStroke.QuadraticSegment(stroke.Point(pen), andyStroke.Point(seg.args[0]), andyStroke.Point(seg.args[1])))
+			contour = append(contour, andyStroke.QuadraticSegment(andyStroke.Point(pen), andyStroke.Point(seg.args[0]), andyStroke.Point(seg.args[1])))
 			pen = seg.args[1]
 		case segOpCubeTo:
 			contour = append(contour, andyStroke.Segment{
