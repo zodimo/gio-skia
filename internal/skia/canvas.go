@@ -14,16 +14,16 @@ type Canvas interface {
 	// Save saves Matrix and clip.
 	// Calling Restore discards changes to Matrix and clip,
 	// restoring the Matrix and clip to their state when Save was called.
-	Save() int
+	Save() (saveCount int)
 
 	// SaveLayer saves Matrix and clip, and allocates a Surface for subsequent drawing.
 	// Calling Restore discards changes to Matrix and clip, and draws the Surface.
-	SaveLayer(bounds *Rect, paint Paint) int
+	SaveLayer(bounds *Rect, paint Paint) (saveCount int)
 
 	// SaveLayerAlpha saves Matrix and clip, and allocates Surface for subsequent drawing.
 	// Calling Restore discards changes to Matrix and clip,
 	// and blends layer with alpha opacity onto prior layer.
-	SaveLayerAlpha(bounds *Rect, alpha float32) int
+	SaveLayerAlpha(bounds *Rect, alpha float32) (saveCount int)
 
 	// Restore removes changes to Matrix and clip since Canvas state was last saved.
 	Restore()
