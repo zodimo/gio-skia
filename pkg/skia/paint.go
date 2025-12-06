@@ -116,20 +116,171 @@ type Paint interface {
 }
 
 // Shader provides colors used when filling a path.
-type Shader interface{}
+type Shader interface {
+	// IsOpaque returns true if the shader is guaranteed to produce only opaque colors.
+	IsOpaque() bool
+
+	// IsAImage returns the image if this shader is backed by a single image.
+	IsAImage(localMatrix Matrix, xy []TileMode) Image
+
+	// MakeWithLocalMatrix returns a shader that will apply the specified localMatrix to this shader.
+	MakeWithLocalMatrix(matrix Matrix) Shader
+
+	// MakeWithColorFilter creates a new shader that produces the same colors as invoking this shader and then applying the colorfilter.
+	MakeWithColorFilter(filter ColorFilter) Shader
+
+	// MakeWithWorkingColorSpace returns a shader that will compute this shader in a context such that any child shaders return RGBA values converted to the inputCS colorspace.
+	MakeWithWorkingColorSpace(inputCS, outputCS ColorSpace) Shader
+}
 
 // ColorFilter modifies the color of pixels drawn.
-type ColorFilter interface{}
+type ColorFilter interface {
+	// AsAColorMode returns true if the filter can be represented by a source color plus Mode.
+	AsAColorMode(color *Color, mode *BlendMode) bool
+
+	// AsAColorMatrix returns true if the filter can be represented by a 5x4 matrix.
+	AsAColorMatrix(matrix [20]float32) bool
+
+	// IsAlphaUnchanged returns true if the filter is guaranteed to never change the alpha of a color it filters.
+	IsAlphaUnchanged() bool
+
+	// FilterColor4f converts the src color (in src colorspace), into the dst colorspace, then applies this filter to it.
+	FilterColor4f(srcColor Color4f, srcCS, dstCS ColorSpace) Color4f
+
+	// MakeComposed constructs a colorfilter whose effect is to first apply the inner filter and then apply this filter.
+	MakeComposed(inner ColorFilter) ColorFilter
+
+	// MakeWithWorkingColorSpace returns a colorfilter that will compute this filter in a specific color space.
+	MakeWithWorkingColorSpace(cs ColorSpace) ColorFilter
+}
 
 // MaskFilter modifies the alpha channel of pixels drawn.
-type MaskFilter interface{}
+type MaskFilter interface {
+	// MakeBlur creates a blur maskfilter.
+	MakeBlur(style BlurStyle, sigma Scalar, respectCTM bool) MaskFilter
+}
+
+// BlurStyle specifies the blur style.
+type BlurStyle uint8
+
+const (
+	BlurStyleNormal BlurStyle = iota
+	BlurStyleSolid
+	BlurStyleOuter
+	BlurStyleInner
+)
 
 // PathEffect modifies the geometry of paths before they are drawn.
-type PathEffect interface{}
+type PathEffect interface {
+	// MakeSum returns a patheffect that applies each effect (first and second) to the original path.
+	MakeSum(first, second PathEffect) PathEffect
+
+	// MakeCompose returns a patheffect that applies the inner effect to the path, and then applies the outer effect to the result.
+	MakeCompose(outer, inner PathEffect) PathEffect
+
+	// FilterPath applies this effect to the src path, returning the new path in dst.
+	FilterPath(dst PathBuilder, src Path, strokeRec StrokeRec, cullRect *Rect, ctm Matrix) bool
+
+	// NeedsCTM returns true if this path effect requires a valid CTM.
+	NeedsCTM() bool
+}
+
+// StrokeRec represents stroke recording information.
+type StrokeRec interface {
+	// Style returns the stroke style.
+	Style() PaintStyle
+
+	// Width returns the stroke width.
+	Width() Scalar
+
+	// Miter returns the miter limit.
+	Miter() Scalar
+
+	// Cap returns the cap style.
+	Cap() PaintCap
+
+	// Join returns the join style.
+	Join() PaintJoin
+}
+
+// PathBuilder is used to build paths.
+type PathBuilder interface {
+	// MoveTo starts a new contour at the specified point.
+	MoveTo(x, y Scalar)
+
+	// LineTo adds a line from the last point to the specified point.
+	LineTo(x, y Scalar)
+
+	// QuadTo adds a quadratic bezier.
+	QuadTo(cx, cy, x, y Scalar)
+
+	// CubicTo adds a cubic bezier.
+	CubicTo(cx1, cy1, cx2, cy2, x, y Scalar)
+
+	// Close closes the current contour.
+	Close()
+}
 
 // ImageFilter modifies the pixels of images before they are drawn.
-type ImageFilter interface{}
+type ImageFilter interface {
+	// FilterBounds maps a device-space rect recursively forward or backward through the filter DAG.
+	FilterBounds(src IRect, ctm Matrix, direction MapDirection, inputRect *IRect) IRect
+
+	// IsColorFilterNode returns whether this image filter is a color filter.
+	IsColorFilterNode(filterPtr **ColorFilter) bool
+
+	// AsAColorFilter returns true if this imagefilter can be completely replaced by the returned colorfilter.
+	AsAColorFilter(filterPtr **ColorFilter) bool
+
+	// CountInputs returns the number of inputs this filter will accept.
+	CountInputs() int
+
+	// GetInput returns the input filter at a given index.
+	GetInput(i int) ImageFilter
+
+	// ComputeFastBounds returns the fast bounds of the filter.
+	ComputeFastBounds(bounds Rect) Rect
+
+	// CanComputeFastBounds returns true if this filter DAG can compute the resulting bounds.
+	CanComputeFastBounds() bool
+
+	// MakeWithLocalMatrix returns a filter with a local matrix applied.
+	MakeWithLocalMatrix(matrix Matrix) ImageFilter
+}
+
+// MapDirection specifies the direction for mapping bounds.
+type MapDirection uint8
+
+const (
+	MapDirectionForward MapDirection = iota
+	MapDirectionReverse
+)
 
 // ColorSpace describes the color space of colors.
-type ColorSpace interface{}
+type ColorSpace interface {
+	// IsSRGB returns true if the color space is sRGB.
+	IsSRGB() bool
 
+	// IsLinearGamma returns true if the color space has a linear gamma.
+	IsLinearGamma() bool
+
+	// GammaIsCloseToSRGB returns true if the gamma is close to sRGB.
+	GammaIsCloseToSRGB() bool
+
+	// IsNumericalTransferFunction returns true if the transfer function is numerical.
+	IsNumericalTransferFunction() bool
+
+	// ToXYZD50 converts the color space to XYZ D50.
+	ToXYZD50() [9]float32
+
+	// TransferFn returns the transfer function.
+	TransferFn() TransferFn
+
+	// Hash returns a hash of the color space.
+	Hash() uint32
+}
+
+// TransferFn represents a transfer function.
+type TransferFn struct {
+	FA, FB, FC, FD, FE, FF, FG float32
+}
