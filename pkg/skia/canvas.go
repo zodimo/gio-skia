@@ -160,14 +160,22 @@ type Canvas interface {
 	// DrawArc draws arc using clip, Matrix, and Paint.
 	DrawArc(oval Rect, startAngle, sweepAngle Scalar, useCenter bool, paint Paint)
 
+	// DrawArcArc draws arc from Arc specification using clip, Matrix, and Paint.
+	DrawArcArc(arc Arc, paint Paint)
+
 	// DrawRoundRect draws RRect bounded by Rect, with corner radii (rx, ry).
 	DrawRoundRect(rect Rect, rx, ry Scalar, paint Paint)
 
 	// DrawPath draws Path using clip, Matrix, and Paint.
 	DrawPath(path Path, paint Paint)
 
-	// DrawImage draws Image at (x, y).
+	// DrawImage draws Image at (x, y) with sampling options and paint.
+	// paint may be nil to use default paint settings.
 	DrawImage(image Image, x, y Scalar, sampling SamplingOptions, paint Paint)
+
+	// DrawImageSimple draws Image at (x, y) with default sampling (nearest neighbor) and no paint.
+	// This is a convenience method equivalent to DrawImage with zero-value SamplingOptions and nil paint.
+	DrawImageSimple(image Image, x, y Scalar)
 
 	// DrawImageRect draws Image stretched proportionally to fit into Rect dst.
 	DrawImageRect(image Image, src, dst Rect, sampling SamplingOptions, paint Paint, constraint SrcRectConstraint)
@@ -200,7 +208,12 @@ type Canvas interface {
 	DrawTextBlob(blob TextBlob, x, y Scalar, paint Paint)
 
 	// DrawPicture draws Picture, using clip and Matrix.
+	// matrix may be nil to use identity matrix, paint may be nil to use default paint settings.
 	DrawPicture(picture Picture, matrix Matrix, paint Paint)
+
+	// DrawPictureSimple draws Picture using current clip and matrix, without additional transform or paint.
+	// This is a convenience method equivalent to DrawPicture with nil matrix and nil paint.
+	DrawPictureSimple(picture Picture)
 
 	// DrawVertices draws Vertices, a triangle mesh.
 	DrawVertices(vertices Vertices, mode BlendMode, paint Paint)
@@ -723,9 +736,69 @@ type RSXform struct {
 	FSx, FKy, FTx, FTy Scalar
 }
 
-// SamplingOptions represents sampling options.
+// SamplingOptions represents sampling options for image drawing operations.
+// It controls how pixels are sampled when images are scaled or transformed.
 type SamplingOptions struct {
-	// TODO: Add fields based on SkSamplingOptions
+	// MaxAniso specifies maximum anisotropy for anisotropic filtering.
+	// Zero means anisotropic filtering is disabled.
+	MaxAniso int
+
+	// UseCubic indicates whether cubic resampling should be used.
+	UseCubic bool
+
+	// Cubic specifies the cubic resampling coefficients (B, C).
+	// Only used when UseCubic is true.
+	Cubic CubicResampler
+
+	// Filter specifies the filter mode (nearest neighbor or linear interpolation).
+	Filter FilterMode
+
+	// Mipmap specifies how mipmap levels are sampled.
+	Mipmap MipmapMode
+}
+
+// NewSamplingOptions creates SamplingOptions with the specified filter and mipmap modes.
+func NewSamplingOptions(filter FilterMode, mipmap MipmapMode) SamplingOptions {
+	return SamplingOptions{
+		Filter: filter,
+		Mipmap: mipmap,
+	}
+}
+
+// NewSamplingOptionsFilter creates SamplingOptions with the specified filter mode
+// and no mipmap sampling.
+func NewSamplingOptionsFilter(filter FilterMode) SamplingOptions {
+	return SamplingOptions{
+		Filter: filter,
+		Mipmap: MipmapModeNone,
+	}
+}
+
+// NewSamplingOptionsCubic creates SamplingOptions with cubic resampling.
+func NewSamplingOptionsCubic(cubic CubicResampler) SamplingOptions {
+	return SamplingOptions{
+		UseCubic: true,
+		Cubic:    cubic,
+		Filter:   FilterModeLinear, // Cubic implies linear filtering
+		Mipmap:   MipmapModeNone,
+	}
+}
+
+// NewSamplingOptionsAniso creates SamplingOptions with anisotropic filtering.
+func NewSamplingOptionsAniso(maxAniso int) SamplingOptions {
+	if maxAniso < 1 {
+		maxAniso = 1
+	}
+	return SamplingOptions{
+		MaxAniso: maxAniso,
+		Filter:   FilterModeLinear,
+		Mipmap:   MipmapModeNone,
+	}
+}
+
+// IsAniso returns true if anisotropic filtering is enabled.
+func (so SamplingOptions) IsAniso() bool {
+	return so.MaxAniso != 0
 }
 
 // FilterMode specifies the filter mode.

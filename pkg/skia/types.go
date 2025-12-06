@@ -49,3 +49,31 @@ type Point3 struct {
 	X, Y, Z Scalar
 }
 
+// CubicResampler specifies B and C coefficients for cubic reconstruction filter.
+// Used in SamplingOptions for high-quality image resampling.
+//
+// Example values:
+//   - B = 1/3, C = 1/3: "Mitchell" filter
+//   - B = 0, C = 1/2: "Catmull-Rom" filter
+type CubicResampler struct {
+	B, C float32
+}
+
+// Mitchell returns a CubicResampler with Mitchell filter coefficients (B=1/3, C=1/3).
+func Mitchell() CubicResampler {
+	return CubicResampler{B: 1.0 / 3.0, C: 1.0 / 3.0}
+}
+
+// CatmullRom returns a CubicResampler with Catmull-Rom filter coefficients (B=0, C=1/2).
+func CatmullRom() CubicResampler {
+	return CubicResampler{B: 0.0, C: 0.5}
+}
+
+// Arc represents an arc specification for drawing.
+type Arc struct {
+	Oval       Rect
+	StartAngle Scalar
+	SweepAngle Scalar
+	IsWedge    bool // If true, includes lines from center to arc endpoints
+}
+

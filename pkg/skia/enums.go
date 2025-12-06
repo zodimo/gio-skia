@@ -173,3 +173,12 @@ const (
 	TileModeMirror
 	TileModeDecal
 )
+
+// MipmapMode specifies how mipmap levels are sampled.
+type MipmapMode uint8
+
+const (
+	MipmapModeNone MipmapMode = iota
+	MipmapModeNearest
+	MipmapModeLinear
+)
