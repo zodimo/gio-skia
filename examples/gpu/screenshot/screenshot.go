@@ -37,10 +37,10 @@ func Run(window *headless.Window) error {
 	// Draw test rectangle
 	c := skia.NewCanvas(&ops)
 	p := skia.NewPath()
-	p.AddRect(10, 10, 100, 50)
-	c.SetStroke(skia.StrokeOpts{Width: 3, Miter: 4})
-	c.SetColor(color.NRGBA{R: 255, A: 255})
-	c.DrawPath(p)
+	skia.PathAddRect(p, 10, 10, 100, 50)
+	paint := skia.NewPaintStroke(color.NRGBA{R: 255, A: 255}, 3)
+	paint.SetStrokeMiter(4)
+	c.DrawPath(p, paint)
 
 	window.Frame(&ops)
 	//save screenshot

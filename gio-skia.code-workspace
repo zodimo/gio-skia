@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../GoProjects/Development/go-skia-support"
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"skia",
+			"xform"
+		]
+	}
+}

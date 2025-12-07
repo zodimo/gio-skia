@@ -3,7 +3,6 @@ package main
 import (
 	"image/color"
 	"log"
-	"math"
 	"os"
 
 	"gioui.org/app"
@@ -44,30 +43,30 @@ func Run(window *app.Window) error {
 			// Example 1: Nested transformations with Save/Restore
 			// Draw a rotating square pattern
 			c.Save()
-			c.Translate(centerX, centerY)
+			c.TranslateFloat32(centerX, centerY)
 			for i := 0; i < 8; i++ {
 				c.Save()
-				c.Rotate(float32(i) * math.Pi / 4)
-				c.Translate(80, 0)
-				c.SetColor(color.NRGBA{R: 100 + uint8(i*20), G: 150, B: 200, A: 255})
+				c.RotateFloat32(float32(i) * 180.0 / 4) // Convert radians to degrees
+				c.TranslateFloat32(80, 0)
+				skPaint := skia.NewPaintFill(color.NRGBA{R: 100 + uint8(i*20), G: 150, B: 200, A: 255})
 				p := skia.NewPath()
-				p.AddRect(-20, -20, 40, 40)
-				c.DrawPath(p)
+				skia.PathAddRect(p, -20, -20, 40, 40)
+				c.DrawPath(p, skPaint)
 				c.Restore()
 			}
 			c.Restore()
 
 			// Example 2: Scaling demonstration
 			c.Save()
-			c.Translate(centerX*0.3, centerY*0.3)
+			c.TranslateFloat32(centerX*0.3, centerY*0.3)
 			scale := float32(0.8)
 			for i := 0; i < 5; i++ {
 				c.Save()
-				c.Scale(scale, scale)
-				c.SetColor(color.NRGBA{R: 255, G: 200 - uint8(i*30), B: 100, A: 255})
+				c.ScaleFloat32(scale, scale)
+				skPaint := skia.NewPaintFill(color.NRGBA{R: 255, G: 200 - uint8(i*30), B: 100, A: 255})
 				p := skia.NewPath()
-				p.AddCircle(0, 0, 30)
-				c.DrawPath(p)
+				skia.PathAddCircle(p, 0, 0, 30)
+				c.DrawPath(p, skPaint)
 				c.Restore()
 				scale *= 0.7
 			}
@@ -75,20 +74,20 @@ func Run(window *app.Window) error {
 
 			// Example 3: Translation grid
 			c.Save()
-			c.Translate(centerX*1.5, centerY*0.3)
+			c.TranslateFloat32(centerX*1.5, centerY*0.3)
 			for x := 0; x < 4; x++ {
 				for y := 0; y < 4; y++ {
 					c.Save()
-					c.Translate(float32(x*40), float32(y*40))
-					c.SetColor(color.NRGBA{
+					c.TranslateFloat32(float32(x*40), float32(y*40))
+					skPaint := skia.NewPaintFill(color.NRGBA{
 						R: uint8(100 + x*40),
 						G: uint8(100 + y*40),
 						B: 150,
 						A: 255,
 					})
 					p := skia.NewPath()
-					p.AddRect(-15, -15, 30, 30)
-					c.DrawPath(p)
+					skia.PathAddRect(p, -15, -15, 30, 30)
+					c.DrawPath(p, skPaint)
 					c.Restore()
 				}
 			}
@@ -96,71 +95,72 @@ func Run(window *app.Window) error {
 
 			// Example 4: Rotation around different points
 			c.Save()
-			c.Translate(centerX*0.3, centerY*1.5)
+			c.TranslateFloat32(centerX*0.3, centerY*1.5)
 			for i := 0; i < 12; i++ {
 				c.Save()
-				c.Rotate(float32(i) * math.Pi / 6)
-				c.Translate(50, 0)
-				c.SetColor(color.NRGBA{
+				c.RotateFloat32(float32(i) * 180.0 / 6) // Convert radians to degrees
+				c.TranslateFloat32(50, 0)
+				skPaint := skia.NewPaintFill(color.NRGBA{
 					R: uint8(150 + i*8),
 					G: uint8(200 - i*10),
 					B: 255,
 					A: 255,
 				})
 				p := skia.NewPath()
-				p.AddRect(-10, -10, 20, 20)
-				c.DrawPath(p)
+				skia.PathAddRect(p, -10, -10, 20, 20)
+				c.DrawPath(p, skPaint)
 				c.Restore()
 			}
 			c.Restore()
 
 			// Example 5: Combined transformations - Spiral pattern
 			c.Save()
-			c.Translate(centerX*1.5, centerY*1.5)
+			c.TranslateFloat32(centerX*1.5, centerY*1.5)
 			for i := 0; i < 20; i++ {
 				c.Save()
-				angle := float32(i) * math.Pi / 10
+				angle := float32(i) * 180.0 / 10 // Already in degrees
 				radius := float32(i * 8)
-				c.Rotate(angle)
-				c.Translate(radius, 0)
-				c.Scale(1.0-float32(i)*0.03, 1.0-float32(i)*0.03)
-				c.SetColor(color.NRGBA{
+				c.RotateFloat32(angle)
+				c.TranslateFloat32(radius, 0)
+				c.ScaleFloat32(1.0-float32(i)*0.03, 1.0-float32(i)*0.03)
+				skPaint := skia.NewPaintFill(color.NRGBA{
 					R: uint8(255 - i*10),
 					G: uint8(100 + i*5),
 					B: uint8(150 + i*5),
 					A: 255,
 				})
 				p := skia.NewPath()
-				p.AddCircle(0, 0, 15)
-				c.DrawPath(p)
+				skia.PathAddCircle(p, 0, 0, 15)
+				c.DrawPath(p, skPaint)
 				c.Restore()
 			}
 			c.Restore()
 
 			// Example 6: Nested Save/Restore with different stroke styles
 			c.Save()
-			c.Translate(centerX, centerY*1.8)
-			c.SetStroke(skia.StrokeOpts{Width: 2, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin})
-			c.SetColor(color.NRGBA{R: 255, G: 255, B: 255, A: 255})
+			c.TranslateFloat32(centerX, centerY*1.8)
+			strokeOpts := stroke.StrokeOpts{Width: 2, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin}
+			skPaint := skia.NewPaintStroke(color.NRGBA{R: 255, G: 255, B: 255, A: 255}, 2)
+			skPaint = skia.ConfigureStrokePaint(skPaint, strokeOpts)
 			
 			// Outer ring
 			p1 := skia.NewPath()
-			p1.AddCircle(0, 0, 60)
-			c.DrawPath(p1)
+			skia.PathAddCircle(p1, 0, 0, 60)
+			c.DrawPath(p1, skPaint)
 			
 			// Middle ring
 			c.Save()
-			c.Scale(0.6, 0.6)
+			c.ScaleFloat32(0.6, 0.6)
 			p2 := skia.NewPath()
-			p2.AddCircle(0, 0, 60)
-			c.DrawPath(p2)
+			skia.PathAddCircle(p2, 0, 0, 60)
+			c.DrawPath(p2, skPaint)
 			
 			// Inner ring
 			c.Save()
-			c.Scale(0.5, 0.5)
+			c.ScaleFloat32(0.5, 0.5)
 			p3 := skia.NewPath()
-			p3.AddCircle(0, 0, 60)
-			c.DrawPath(p3)
+			skia.PathAddCircle(p3, 0, 0, 60)
+			c.DrawPath(p3, skPaint)
 			c.Restore()
 			
 			c.Restore()
@@ -168,41 +168,41 @@ func Run(window *app.Window) error {
 
 			// Example 7: Transform chain - rotating squares
 			c.Save()
-			c.Translate(centerX*0.2, centerY*1.8)
+			c.TranslateFloat32(centerX*0.2, centerY*1.8)
 			for i := 0; i < 6; i++ {
 				c.Save()
-				c.Rotate(float32(i) * math.Pi / 3)
-				c.Translate(40, 0)
-				c.Rotate(float32(i) * math.Pi / 6)
-				c.SetColor(color.NRGBA{
+				c.RotateFloat32(float32(i) * 180.0 / 3) // Convert radians to degrees
+				c.TranslateFloat32(40, 0)
+				c.RotateFloat32(float32(i) * 180.0 / 6) // Convert radians to degrees
+				skPaint := skia.NewPaintFill(color.NRGBA{
 					R: uint8(200 + i*8),
 					G: uint8(150 - i*10),
 					B: uint8(100 + i*15),
 					A: 255,
 				})
 				p := skia.NewPath()
-				p.AddRect(-12, -12, 24, 24)
-				c.DrawPath(p)
+				skia.PathAddRect(p, -12, -12, 24, 24)
+				c.DrawPath(p, skPaint)
 				c.Restore()
 			}
 			c.Restore()
 
 			// Example 8: Skew-like effect using rotation and scale
 			c.Save()
-			c.Translate(centerX*1.8, centerY*1.8)
+			c.TranslateFloat32(centerX*1.8, centerY*1.8)
 			for i := 0; i < 5; i++ {
 				c.Save()
-				c.Rotate(float32(i) * math.Pi / 8)
-				c.Scale(1.0+float32(i)*0.1, 1.0-float32(i)*0.05)
-				c.SetColor(color.NRGBA{
+				c.RotateFloat32(float32(i) * 180.0 / 8) // Convert radians to degrees
+				c.ScaleFloat32(1.0+float32(i)*0.1, 1.0-float32(i)*0.05)
+				skPaint := skia.NewPaintFill(color.NRGBA{
 					R: uint8(150 + i*20),
 					G: uint8(200 - i*15),
 					B: uint8(255 - i*10),
 					A: 255,
 				})
 				p := skia.NewPath()
-				p.AddRect(-20, -20, 40, 40)
-				c.DrawPath(p)
+				skia.PathAddRect(p, -20, -20, 40, 40)
+				c.DrawPath(p, skPaint)
 				c.Restore()
 			}
 			c.Restore()

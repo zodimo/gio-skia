@@ -45,28 +45,28 @@ func Run(window *app.Window) error {
 
 			// Row 1: Filled shapes
 			// Filled rectangle
-			c.SetColor(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
+			paint := skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
 			p1 := skia.NewPath()
-			p1.AddRect(startX, startY, 80, 60)
-			c.DrawPath(p1)
+			skia.PathAddRect(p1, startX, startY, 80, 60)
+			c.DrawPath(p1, paint)
 
 			// Filled circle
-			c.SetColor(color.NRGBA{R: 100, G: 255, B: 100, A: 255})
+			paint = skia.NewPaintFill(color.NRGBA{R: 100, G: 255, B: 100, A: 255})
 			p2 := skia.NewPath()
-			p2.AddCircle(startX+spacing, startY, 40)
-			c.DrawPath(p2)
+			skia.PathAddCircle(p2, startX+spacing, startY, 40)
+			c.DrawPath(p2, paint)
 
 			// Filled triangle (using path)
-			c.SetColor(color.NRGBA{R: 100, G: 100, B: 255, A: 255})
+			paint = skia.NewPaintFill(color.NRGBA{R: 100, G: 100, B: 255, A: 255})
 			p3 := skia.NewPath()
-			p3.MoveTo(startX+spacing*2, startY+40)
-			p3.LineTo(startX+spacing*2+40, startY+40)
-			p3.LineTo(startX+spacing*2+20, startY)
+			skia.PathMoveTo(p3, startX+spacing*2, startY+40)
+			skia.PathLineTo(p3, startX+spacing*2+40, startY+40)
+			skia.PathLineTo(p3, startX+spacing*2+20, startY)
 			p3.Close()
-			c.DrawPath(p3)
+			c.DrawPath(p3, paint)
 
 			// Filled star (5-pointed)
-			c.SetColor(color.NRGBA{R: 255, G: 200, B: 100, A: 255})
+			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 100, A: 255})
 			p4 := skia.NewPath()
 			starCenterX := startX + spacing*3
 			starCenterY := startY + 30
@@ -77,39 +77,42 @@ func Run(window *app.Window) error {
 				x := starCenterX + outerRadius*float32(math.Cos(float64(angle-math.Pi/2)))
 				y := starCenterY + outerRadius*float32(math.Sin(float64(angle-math.Pi/2)))
 				if i == 0 {
-					p4.MoveTo(x, y)
+					skia.PathMoveTo(p4, x, y)
 				} else {
-					p4.LineTo(x, y)
+					skia.PathLineTo(p4, x, y)
 				}
 				// Inner point
 				innerAngle := angle + math.Pi/5
 				ix := starCenterX + innerRadius*float32(math.Cos(float64(innerAngle-math.Pi/2)))
 				iy := starCenterY + innerRadius*float32(math.Sin(float64(innerAngle-math.Pi/2)))
-				p4.LineTo(ix, iy)
+				skia.PathLineTo(p4, ix, iy)
 			}
 			p4.Close()
-			c.DrawPath(p4)
+			c.DrawPath(p4, paint)
 
 			// Row 2: Stroked shapes
 			startY2 := startY + spacing
 
 			// Stroked rectangle
-			c.SetStroke(skia.StrokeOpts{Width: 4, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin})
-			c.SetColor(color.NRGBA{R: 200, G: 50, B: 50, A: 255})
+			strokeOpts := stroke.StrokeOpts{Width: 4, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 200, G: 50, B: 50, A: 255}, 4)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 			p5 := skia.NewPath()
-			p5.AddRect(startX, startY2, 80, 60)
-			c.DrawPath(p5)
+			skia.PathAddRect(p5, startX, startY2, 80, 60)
+			c.DrawPath(p5, paint)
 
 			// Stroked circle
-			c.SetStroke(skia.StrokeOpts{Width: 5, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin})
-			c.SetColor(color.NRGBA{R: 50, G: 200, B: 50, A: 255})
+			strokeOpts = stroke.StrokeOpts{Width: 5, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 50, G: 200, B: 50, A: 255}, 5)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 			p6 := skia.NewPath()
-			p6.AddCircle(startX+spacing, startY2+30, 40)
-			c.DrawPath(p6)
+			skia.PathAddCircle(p6, startX+spacing, startY2+30, 40)
+			c.DrawPath(p6, paint)
 
 			// Stroked hexagon
-			c.SetStroke(skia.StrokeOpts{Width: 3, Miter: 4, Cap: stroke.SquareCap, Join: stroke.MiterJoin})
-			c.SetColor(color.NRGBA{R: 50, G: 50, B: 200, A: 255})
+			strokeOpts = stroke.StrokeOpts{Width: 3, Miter: 4, Cap: stroke.SquareCap, Join: stroke.MiterJoin}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 50, G: 50, B: 200, A: 255}, 3)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 			p7 := skia.NewPath()
 			hexCenterX := startX + spacing*2 + 40
 			hexCenterY := startY2 + 30
@@ -119,75 +122,75 @@ func Run(window *app.Window) error {
 				x := hexCenterX + hexRadius*float32(math.Cos(float64(angle)))
 				y := hexCenterY + hexRadius*float32(math.Sin(float64(angle)))
 				if i == 0 {
-					p7.MoveTo(x, y)
+					skia.PathMoveTo(p7, x, y)
 				} else {
-					p7.LineTo(x, y)
+					skia.PathLineTo(p7, x, y)
 				}
 			}
 			p7.Close()
-			c.DrawPath(p7)
+			c.DrawPath(p7, paint)
 
 			// Stroked arrow
-			c.SetStroke(skia.StrokeOpts{Width: 6, Miter: 4, Cap: stroke.TriangularCap, Join: stroke.MiterJoin})
-			c.SetColor(color.NRGBA{R: 150, G: 100, B: 200, A: 255})
+			strokeOpts = stroke.StrokeOpts{Width: 6, Miter: 4, Cap: stroke.TriangularCap, Join: stroke.MiterJoin}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 150, G: 100, B: 200, A: 255}, 6)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 			p8 := skia.NewPath()
 			arrowX := startX + spacing*3
 			arrowY := startY2 + 30
-			p8.MoveTo(arrowX-30, arrowY)
-			p8.LineTo(arrowX+30, arrowY)
-			p8.MoveTo(arrowX+15, arrowY-15)
-			p8.LineTo(arrowX+30, arrowY)
-			p8.LineTo(arrowX+15, arrowY+15)
-			c.DrawPath(p8)
+			skia.PathMoveTo(p8, arrowX-30, arrowY)
+			skia.PathLineTo(p8, arrowX+30, arrowY)
+			skia.PathMoveTo(p8, arrowX+15, arrowY-15)
+			skia.PathLineTo(p8, arrowX+30, arrowY)
+			skia.PathLineTo(p8, arrowX+15, arrowY+15)
+			c.DrawPath(p8, paint)
 
 			// Row 3: Complex filled shapes
 			startY3 := startY + spacing*2
 
-			// Reset to fill mode for Row 3 shapes
-			c.Fill()
-
+			// Row 3: Complex filled shapes
 			// Rounded rectangle (approximated with arcs)
-			c.SetColor(color.NRGBA{R: 255, G: 150, B: 200, A: 255})
+			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 150, B: 200, A: 255})
 			p9 := skia.NewPath()
 			rectX, rectY := startX, startY3
 			rectW, rectH := float32(80), float32(60)
 			radius := float32(15)
 			// Top-left corner
-			p9.MoveTo(rectX+radius, rectY)
-			p9.LineTo(rectX+rectW-radius, rectY)
+			skia.PathMoveTo(p9, rectX+radius, rectY)
+			skia.PathLineTo(p9, rectX+rectW-radius, rectY)
 			// Top-right corner (arc)
-			p9.CubeTo(rectX+rectW-radius*0.552, rectY, rectX+rectW, rectY+radius*0.552, rectX+rectW, rectY+radius)
-			p9.LineTo(rectX+rectW, rectY+rectH-radius)
+			skia.PathCubeTo(p9, rectX+rectW-radius*0.552, rectY, rectX+rectW, rectY+radius*0.552, rectX+rectW, rectY+radius)
+			skia.PathLineTo(p9, rectX+rectW, rectY+rectH-radius)
 			// Bottom-right corner (arc)
-			p9.CubeTo(rectX+rectW, rectY+rectH-radius*0.552, rectX+rectW-radius*0.552, rectY+rectH, rectX+rectW-radius, rectY+rectH)
-			p9.LineTo(rectX+radius, rectY+rectH)
+			skia.PathCubeTo(p9, rectX+rectW, rectY+rectH-radius*0.552, rectX+rectW-radius*0.552, rectY+rectH, rectX+rectW-radius, rectY+rectH)
+			skia.PathLineTo(p9, rectX+radius, rectY+rectH)
 			// Bottom-left corner (arc)
-			p9.CubeTo(rectX+radius*0.552, rectY+rectH, rectX, rectY+rectH-radius*0.552, rectX, rectY+rectH-radius)
-			p9.LineTo(rectX, rectY+radius)
+			skia.PathCubeTo(p9, rectX+radius*0.552, rectY+rectH, rectX, rectY+rectH-radius*0.552, rectX, rectY+rectH-radius)
+			skia.PathLineTo(p9, rectX, rectY+radius)
 			// Top-left corner (arc)
-			p9.CubeTo(rectX, rectY+radius*0.552, rectX+radius*0.552, rectY, rectX+radius, rectY)
+			skia.PathCubeTo(p9, rectX, rectY+radius*0.552, rectX+radius*0.552, rectY, rectX+radius, rectY)
 			p9.Close()
-			c.DrawPath(p9)
+			c.DrawPath(p9, paint)
 
 			// Heart shape
-			c.SetColor(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
+			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
 			p10 := skia.NewPath()
 			heartX := startX + spacing
 			heartY := startY3 + 30
 			heartSize := float32(30)
 			// Left curve
-			p10.MoveTo(heartX, heartY+heartSize*0.3)
-			p10.CubeTo(heartX, heartY, heartX-heartSize*0.5, heartY-heartSize*0.5, heartX-heartSize*0.5, heartY)
-			p10.CubeTo(heartX-heartSize*0.5, heartY+heartSize*0.5, heartX, heartY+heartSize*0.8, heartX, heartY+heartSize)
+			skia.PathMoveTo(p10, heartX, heartY+heartSize*0.3)
+			skia.PathCubeTo(p10, heartX, heartY, heartX-heartSize*0.5, heartY-heartSize*0.5, heartX-heartSize*0.5, heartY)
+			skia.PathCubeTo(p10, heartX-heartSize*0.5, heartY+heartSize*0.5, heartX, heartY+heartSize*0.8, heartX, heartY+heartSize)
 			// Right curve
-			p10.CubeTo(heartX, heartY+heartSize*0.8, heartX+heartSize*0.5, heartY+heartSize*0.5, heartX+heartSize*0.5, heartY)
-			p10.CubeTo(heartX+heartSize*0.5, heartY-heartSize*0.5, heartX, heartY, heartX, heartY+heartSize*0.3)
+			skia.PathCubeTo(p10, heartX, heartY+heartSize*0.8, heartX+heartSize*0.5, heartY+heartSize*0.5, heartX+heartSize*0.5, heartY)
+			skia.PathCubeTo(p10, heartX+heartSize*0.5, heartY-heartSize*0.5, heartX, heartY, heartX, heartY+heartSize*0.3)
 			p10.Close()
-			c.DrawPath(p10)
+			c.DrawPath(p10, paint)
 
 			// Spiral
-			c.SetStroke(skia.StrokeOpts{Width: 2, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin})
-			c.SetColor(color.NRGBA{R: 100, G: 150, B: 255, A: 255})
+			strokeOpts = stroke.StrokeOpts{Width: 2, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 100, G: 150, B: 255, A: 255}, 2)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 			p11 := skia.NewPath()
 			spiralX := startX + spacing*2 + 40
 			spiralY := startY3 + 30
@@ -198,18 +201,15 @@ func Run(window *app.Window) error {
 				x := spiralX + radius*float32(math.Cos(float64(angle)))
 				y := spiralY + radius*float32(math.Sin(float64(angle)))
 				if i == 0 {
-					p11.MoveTo(x, y)
+					skia.PathMoveTo(p11, x, y)
 				} else {
-					p11.LineTo(x, y)
+					skia.PathLineTo(p11, x, y)
 				}
 			}
-			c.DrawPath(p11)
-
-			// Reset to fill mode for gear shape
-			c.Fill()
+			c.DrawPath(p11, paint)
 
 			// Gear shape
-			c.SetColor(color.NRGBA{R: 200, G: 200, B: 100, A: 255})
+			paint = skia.NewPaintFill(color.NRGBA{R: 200, G: 200, B: 100, A: 255})
 			p12 := skia.NewPath()
 			gearX := startX + spacing*3
 			gearY := startY3 + 30
@@ -227,13 +227,13 @@ func Run(window *app.Window) error {
 				x := gearX + radius*float32(math.Cos(float64(angle)))
 				y := gearY + radius*float32(math.Sin(float64(angle)))
 				if i == 0 {
-					p12.MoveTo(x, y)
+					skia.PathMoveTo(p12, x, y)
 				} else {
-					p12.LineTo(x, y)
+					skia.PathLineTo(p12, x, y)
 				}
 			}
 			p12.Close()
-			c.DrawPath(p12)
+			c.DrawPath(p12, paint)
 
 			frameEvent.Frame(&ops)
 		}

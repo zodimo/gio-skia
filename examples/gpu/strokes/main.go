@@ -46,25 +46,25 @@ func Run(window *app.Window) error {
 			
 			for i, capStyle := range capStyles {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing, startY)
+				c.TranslateFloat32(startX+float32(i)*spacing, startY)
 				
 				// Draw a line showing the cap style
-				c.SetStroke(skia.StrokeOpts{Width: 20, Miter: 4, Cap: capStyle, Join: stroke.RoundJoin})
-				c.SetColor(color.NRGBA{R: 100, G: 150, B: 255, A: 255})
+				strokeOpts := stroke.StrokeOpts{Width: 8, Miter: 4, Cap: capStyle, Join: stroke.RoundJoin}
+				paint := skia.NewPaintStroke(color.NRGBA{R: 100, G: 150, B: 255, A: 255}, 8)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
-				p.MoveTo(-40, 0)
-				p.LineTo(40, 0)
-				c.DrawPath(p)
+				skia.PathMoveTo(p, -40, 0)
+				skia.PathLineTo(p, 40, 0)
+				c.DrawPath(p, paint)
 				
 				// Draw endpoints as circles for reference
-				c.Fill()
-				c.SetColor(color.NRGBA{R: 255, G: 0, B: 0, A: 255})
+				paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 0, B: 0, A: 255})
 				p1 := skia.NewPath()
-				p1.AddCircle(-40, 0, 3)
-				c.DrawPath(p1)
+				skia.PathAddCircle(p1, -40, 0, 3)
+				c.DrawPath(p1, paint)
 				p2 := skia.NewPath()
-				p2.AddCircle(40, 0, 3)
-				c.DrawPath(p2)
+				skia.PathAddCircle(p2, 40, 0, 3)
+				c.DrawPath(p2, paint)
 				
 				c.Restore()
 			}
@@ -75,15 +75,15 @@ func Run(window *app.Window) error {
 
 			for i, joinStyle := range joinStyles {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing, startY2)
-				
-				c.SetStroke(skia.StrokeOpts{Width: 15, Miter: 4, Cap: stroke.RoundCap, Join: joinStyle})
-				c.SetColor(color.NRGBA{R: 255, G: 100, B: 150, A: 255})
+				c.TranslateFloat32(startX+float32(i)*spacing, startY2)
+				strokeOpts := stroke.StrokeOpts{Width: 6, Miter: 4, Cap: stroke.RoundCap, Join: joinStyle}
+				paint := skia.NewPaintStroke(color.NRGBA{R: 255, G: 100, B: 150, A: 255}, 6)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
-				p.MoveTo(-30, -20)
-				p.LineTo(0, 20)
-				p.LineTo(30, -20)
-				c.DrawPath(p)
+				skia.PathMoveTo(p, -30, -20)
+				skia.PathLineTo(p, 0, 20)
+				skia.PathLineTo(p, 30, -20)
+				c.DrawPath(p, paint)
 				
 				c.Restore()
 			}
@@ -94,13 +94,13 @@ func Run(window *app.Window) error {
 
 			for i, width := range widths {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing*0.6, startY3)
-				
-				c.SetStroke(skia.StrokeOpts{Width: width, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin})
-				c.SetColor(color.NRGBA{R: 50, G: 200, B: 100, A: 255})
+				c.TranslateFloat32(startX+float32(i)*spacing*0.6, startY3)
+				strokeOpts := stroke.StrokeOpts{Width: width, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin}
+				paint := skia.NewPaintStroke(color.NRGBA{R: 50, G: 200, B: 100, A: 255}, width)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
-				p.AddCircle(0, 0, 30)
-				c.DrawPath(p)
+				skia.PathAddCircle(p, 0, 0, 30)
+				c.DrawPath(p, paint)
 				
 				c.Restore()
 			}
@@ -117,21 +117,14 @@ func Run(window *app.Window) error {
 
 			for i, pattern := range dashPatterns {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing*0.6, startY4)
-				
-				c.SetStroke(skia.StrokeOpts{
-					Width: 8,
-					Miter: 4,
-					Cap:   stroke.RoundCap,
-					Join:  stroke.RoundJoin,
-					Dash:  pattern,
-					Dash0: 0,
-				})
-				c.SetColor(color.NRGBA{R: 200, G: 150, B: 50, A: 255})
+				c.TranslateFloat32(startX+float32(i)*spacing*0.6, startY4)
+				strokeOpts := stroke.StrokeOpts{Width: 4, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin, Dash: pattern, Dash0: 0}
+				paint := skia.NewPaintStroke(color.NRGBA{R: 200, G: 150, B: 50, A: 255}, 4)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
-				p.MoveTo(-50, 0)
-				p.LineTo(50, 0)
-				c.DrawPath(p)
+				skia.PathMoveTo(p, -50, 0)
+				skia.PathLineTo(p, 50, 0)
+				c.DrawPath(p, paint)
 				
 				c.Restore()
 			}
@@ -142,21 +135,14 @@ func Run(window *app.Window) error {
 
 			for i, phase := range phases {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing*0.6, startY5)
-				
-				c.SetStroke(skia.StrokeOpts{
-					Width: 6,
-					Miter: 4,
-					Cap:   stroke.RoundCap,
-					Join:  stroke.RoundJoin,
-					Dash:  []float32{15, 10},
-					Dash0: phase,
-				})
-				c.SetColor(color.NRGBA{R: 150, G: 100, B: 255, A: 255})
+				c.TranslateFloat32(startX+float32(i)*spacing*0.6, startY5)
+				strokeOpts := stroke.StrokeOpts{Width: 4, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin, Dash: []float32{10, 5}, Dash0: phase}
+				paint := skia.NewPaintStroke(color.NRGBA{R: 150, G: 100, B: 255, A: 255}, 4)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
-				p.MoveTo(-40, 0)
-				p.LineTo(40, 0)
-				c.DrawPath(p)
+				skia.PathMoveTo(p, -40, 0)
+				skia.PathLineTo(p, 40, 0)
+				c.DrawPath(p, paint)
 				
 				c.Restore()
 			}
@@ -167,21 +153,16 @@ func Run(window *app.Window) error {
 
 			for i, miter := range miterLimits {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing*0.6, startY6)
-				
-				c.SetStroke(skia.StrokeOpts{
-					Width: 12,
-					Miter: miter,
-					Cap:   stroke.RoundCap,
-					Join:  stroke.MiterJoin,
-				})
-				c.SetColor(color.NRGBA{R: 255, G: 120, B: 80, A: 255})
+				c.TranslateFloat32(startX+float32(i)*spacing*0.6, startY6)
+				strokeOpts := stroke.StrokeOpts{Width: 8, Miter: miter, Cap: stroke.RoundCap, Join: stroke.MiterJoin}
+				paint := skia.NewPaintStroke(color.NRGBA{R: 255, G: 120, B: 80, A: 255}, 8)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
 				// Sharp angle to show miter limit effect
-				p.MoveTo(-20, -20)
-				p.LineTo(0, 20)
-				p.LineTo(20, -20)
-				c.DrawPath(p)
+				skia.PathMoveTo(p, -20, -20)
+				skia.PathLineTo(p, 0, 20)
+				skia.PathLineTo(p, 20, -20)
+				c.DrawPath(p, paint)
 				
 				c.Restore()
 			}
@@ -191,59 +172,55 @@ func Run(window *app.Window) error {
 			
 			// Wavy path with different styles
 			c.Save()
-			c.Translate(startX, startY7)
+			c.TranslateFloat32(startX, startY7)
 			
 			// Style 1: Thick round cap
-			c.SetStroke(skia.StrokeOpts{Width: 8, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin})
-			c.SetColor(color.NRGBA{R: 100, G: 200, B: 255, A: 255})
+			strokeOpts1 := stroke.StrokeOpts{Width: 8, Miter: 4, Cap: stroke.RoundCap, Join: stroke.RoundJoin}
+			paint := skia.NewPaintStroke(color.NRGBA{R: 100, G: 200, B: 255, A: 255}, 8)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts1)
 			p1 := skia.NewPath()
 			for i := 0; i < 20; i++ {
 				x := float32(i-10) * 8
 				y := 20 * float32(math.Sin(float64(i)*0.5))
 				if i == 0 {
-					p1.MoveTo(x, y)
+					skia.PathMoveTo(p1, x, y)
 				} else {
-					p1.LineTo(x, y)
+					skia.PathLineTo(p1, x, y)
 				}
 			}
-			c.DrawPath(p1)
+			c.DrawPath(p1, paint)
 			
 			// Style 2: Dashed square cap
-			c.SetStroke(skia.StrokeOpts{
-				Width: 6,
-				Miter: 4,
-				Cap:   stroke.SquareCap,
-				Join:  stroke.MiterJoin,
-				Dash:  []float32{10, 5},
-				Dash0: 0,
-			})
-			c.SetColor(color.NRGBA{R: 255, G: 150, B: 100, A: 255})
+			strokeOpts2 := stroke.StrokeOpts{Width: 6, Miter: 4, Cap: stroke.SquareCap, Join: stroke.RoundJoin, Dash: []float32{10, 5}, Dash0: 0}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 255, G: 150, B: 100, A: 255}, 6)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts2)
 			p2 := skia.NewPath()
 			for i := 0; i < 20; i++ {
 				x := float32(i-10) * 8
 				y := 20*float32(math.Sin(float64(i)*0.5)) + 60
 				if i == 0 {
-					p2.MoveTo(x, y)
+					skia.PathMoveTo(p2, x, y)
 				} else {
-					p2.LineTo(x, y)
+					skia.PathLineTo(p2, x, y)
 				}
 			}
-			c.DrawPath(p2)
+			c.DrawPath(p2, paint)
 			
 			// Style 3: Thin triangular cap
-			c.SetStroke(skia.StrokeOpts{Width: 4, Miter: 4, Cap: stroke.TriangularCap, Join: stroke.BevelJoin})
-			c.SetColor(color.NRGBA{R: 150, G: 255, B: 150, A: 255})
+			strokeOpts3 := stroke.StrokeOpts{Width: 3, Miter: 4, Cap: stroke.TriangularCap, Join: stroke.RoundJoin}
+			paint = skia.NewPaintStroke(color.NRGBA{R: 150, G: 255, B: 150, A: 255}, 3)
+			paint = skia.ConfigureStrokePaint(paint, strokeOpts3)
 			p3 := skia.NewPath()
 			for i := 0; i < 20; i++ {
 				x := float32(i-10) * 8
 				y := 20*float32(math.Sin(float64(i)*0.5)) + 120
 				if i == 0 {
-					p3.MoveTo(x, y)
+					skia.PathMoveTo(p3, x, y)
 				} else {
-					p3.LineTo(x, y)
+					skia.PathLineTo(p3, x, y)
 				}
 			}
-			c.DrawPath(p3)
+			c.DrawPath(p3, paint)
 			
 			c.Restore()
 
@@ -263,16 +240,10 @@ func Run(window *app.Window) error {
 
 			for i, style := range starStyles {
 				c.Save()
-				c.Translate(startX+float32(i)*spacing, startY8)
-				
-				c.SetStroke(skia.StrokeOpts{
-					Width: style.width,
-					Miter: 4,
-					Cap:   style.cap,
-					Join:  style.join,
-				})
-				c.SetColor(style.color)
-				
+				c.TranslateFloat32(startX+float32(i)*spacing, startY8)
+				strokeOpts := stroke.StrokeOpts{Width: style.width, Miter: 4, Cap: style.cap, Join: style.join}
+				paint := skia.NewPaintStroke(style.color, style.width)
+				paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 				p := skia.NewPath()
 				starRadius := float32(40)
 				innerRadius := float32(20)
@@ -287,13 +258,13 @@ func Run(window *app.Window) error {
 					x := radius * float32(math.Cos(float64(angle-math.Pi/2)))
 					y := radius * float32(math.Sin(float64(angle-math.Pi/2)))
 					if j == 0 {
-						p.MoveTo(x, y)
+						skia.PathMoveTo(p, x, y)
 					} else {
-						p.LineTo(x, y)
+						skia.PathLineTo(p, x, y)
 					}
 				}
 				p.Close()
-				c.DrawPath(p)
+				c.DrawPath(p, paint)
 				
 				c.Restore()
 			}
