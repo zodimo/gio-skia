@@ -47,9 +47,9 @@ func main() {
                 // Create canvas and draw
                 c := skia.NewCanvas(&ops)
                 p := skia.NewPath()
-                p.AddCircle(100, 100, 50)
-                c.SetColor(color.NRGBA{R: 255, A: 255})
-                c.DrawPath(p)
+                skia.PathAddCircle(p, 100, 100, 50)
+                skPaint := skia.NewPaintFill(color.NRGBA{R: 255, A: 255})
+                c.DrawPath(p, skPaint)
                 
                 e.Frame(&ops)
             }
@@ -68,74 +68,102 @@ The `Canvas` interface provides the main drawing context:
 ```go
 type Canvas interface {
     // State management
-    Save()                 // Push matrix & paint onto stack
-    Restore()              // Pop state; restores matrix & paint
-    Concat(m f32.Affine2D) // Multiply current transform matrix
-    Translate(x, y float32)
-    Scale(x, y float32)
-    Rotate(angle float32) // radians, counter-clockwise
+    Save() int                    // Push matrix onto stack, returns save count
+    Restore()                     // Pop state; restores matrix
+    Concat(matrix SkMatrix)       // Multiply current transform matrix
+    Translate(dx, dy Scalar)     // Translate by dx, dy
+    Scale(sx, sy Scalar)          // Scale by sx, sy
+    Rotate(degrees Scalar)       // Rotate by degrees (clockwise)
     
-    // Paint state
-    SetColor(col color.NRGBA)
-    SetStroke(opt StrokeOpts) // Configure stroke style
-    Fill()                    // Switch to fill mode (default)
-    Stroke()                  // Switch to stroke mode
+    // Convenience methods (accept float32)
+    TranslateFloat32(x, y float32)
+    ScaleFloat32(x, y float32)
+    RotateFloat32(degrees float32)
     
     // Drawing
-    DrawPath(p Path) // Render path with current paint & transform
+    DrawPath(path SkPath, paint SkPaint) // Render path with paint & transform
 }
 ```
 
 ### Path Building
 
-Build complex shapes using the `Path` interface:
+Build complex shapes using `SkPath` and helper functions:
 
 ```go
-p := skia.NewPath()
-p.MoveTo(x, y)                    // Move to point
-p.LineTo(x, y)                    // Draw line
-p.QuadTo(cx, cy, x, y)            // Quadratic Bézier curve
-p.CubeTo(cx1, cy1, cx2, cy2, x, y) // Cubic Bézier curve
-p.Close()                         // Close current contour
-p.AddRect(x, y, w, h)             // Add rectangle
-p.AddCircle(cx, cy, r)            // Add circle
+p := skia.NewPath()                    // Create new path
+skia.PathMoveTo(p, x, y)               // Move to point
+skia.PathLineTo(p, x, y)               // Draw line
+skia.PathQuadTo(p, cx, cy, x, y)       // Quadratic Bézier curve
+skia.PathCubeTo(p, cx1, cy1, cx2, cy2, x, y) // Cubic Bézier curve
+p.Close()                              // Close current contour
+skia.PathAddRect(p, x, y, w, h)       // Add rectangle
+skia.PathAddCircle(p, cx, cy, r)      // Add circle
 ```
 
-### Stroke Options
+### Paint
 
-Configure stroke appearance:
+Create and configure paint for drawing operations:
 
 ```go
-strokeOpts := skia.StrokeOpts{
+// Create paint with default settings
+paint := skia.NewPaint()
+
+// Create paint with color (defaults to fill style)
+paint := skia.NewPaintWithColor(color.NRGBA{R: 255, G: 0, B: 0, A: 255})
+
+// Create paint configured for filling
+paint := skia.NewPaintFill(color.NRGBA{R: 255, G: 0, B: 0, A: 255})
+
+// Create paint configured for stroking
+paint := skia.NewPaintStroke(color.NRGBA{R: 255, G: 0, B: 0, A: 255}, 5.0)
+
+// Configure stroke options
+import "github.com/zodimo/gio-skia/pkg/stroke"
+
+strokeOpts := stroke.StrokeOpts{
     Width: 5.0,                    // Stroke width in pixels
     Miter: 4.0,                    // Miter limit
-    Cap:   skia.RoundCap,          // Cap style
-    Join:  skia.RoundJoin,         // Join style
-    Dash:  []float32{10, 5},       // Dash pattern
-    Dash0: 0,                      // Dash phase
+    Cap:   stroke.RoundCap,        // Cap style
+    Join:  stroke.RoundJoin,       // Join style
 }
+paint = skia.ConfigureStrokePaint(paint, strokeOpts)
 ```
 
+**Paint Styles:**
+- `skia.PaintStyleFill` - Fill mode (default)
+- `skia.PaintStyleStroke` - Stroke mode
+- `skia.PaintStyleStrokeAndFill` - Both fill and stroke
+
 **Cap Styles:**
-- `RoundCap` - Round caps
-- `SquareCap` - Square caps
-- `FlatCap` - Flat caps (default)
-- `TriangularCap` - Triangular caps
+- `stroke.RoundCap` - Round caps
+- `stroke.SquareCap` - Square caps
+- `stroke.FlatCap` - Flat caps (default)
 
 **Join Styles:**
-- `RoundJoin` - Round joins
-- `MiterJoin` - Miter joins (default)
-- `BevelJoin` - Bevel joins
+- `stroke.RoundJoin` - Round joins
+- `stroke.MiterJoin` - Miter joins (default)
+- `stroke.BevelJoin` - Bevel joins
 
 ## Examples
 
 See the `examples/gpu/` directory for comprehensive examples:
 
-- `basic_shapes.go` - Basic shapes and primitives
-- `transformations.go` - Transformations and state management
-- `strokes.go` - Stroke styles and dash patterns
-- `bezier_curves.go` - Bézier curves and complex paths
-- `animated.go` - Animated graphics example
+- `basic_shapes/` - Basic shapes and primitives
+- `transformations/` - Transformations and state management
+- `strokes/` - Stroke styles and dash patterns
+- `bezier_curves/` - Bézier curves and complex paths
+- `animated/` - Animated graphics example
+
+## Type Aliases
+
+The library provides convenient type aliases for better developer experience:
+
+- `skia.Scalar` - Floating-point value for coordinates, dimensions, and angles
+- `skia.SkPath` - Path interface for building shapes
+- `skia.SkPaint` - Paint interface for configuring drawing properties
+- `skia.SkMatrix` - Transformation matrix interface
+
+These allow you to use Skia-style types without importing the underlying packages.
 
 ## License
 
