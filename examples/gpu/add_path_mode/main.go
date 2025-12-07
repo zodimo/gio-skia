@@ -8,10 +8,10 @@ import (
 	"gioui.org/app"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
-	"github.com/zodimo/gio-skia/skia"
 )
 
 // This example demonstrates the difference between AddPathModeAppend and AddPathModeExtend
@@ -93,4 +93,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-
