@@ -4,7 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../../../GoProjects/Development/go-skia-support"
+			"path": "../go-skia-support"
 		}
 	],
 	"settings": {
