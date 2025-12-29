@@ -5,7 +5,7 @@ go 1.24.3
 require (
 	gioui.org v0.9.0
 	github.com/andybalholm/stroke v0.0.0-20221221101821-bd29b49d73f0
-	github.com/zodimo/go-skia-support v0.1.2
+	github.com/zodimo/go-skia-support v0.1.3
 	golang.org/x/image v0.26.0
 )
 
