@@ -11,10 +11,8 @@ github.com/go-text/typesetting v0.3.2 h1:OUOFxp9Rx5PiO0/rh2IY+5gmyXjXsVG8+LfEyk9
 github.com/go-text/typesetting v0.3.2/go.mod h1:vIRUT25mLQaSh4C8H/lIsKppQz/Gdb8Pu/tNwpi52ts=
 github.com/go-text/typesetting-utils v0.0.0-20250618110550-c820a94c77b8 h1:4KCscI9qYWMGTuz6BpJtbUSRzcBrUSSE0ENMJbNSrFs=
 github.com/go-text/typesetting-utils v0.0.0-20250618110550-c820a94c77b8/go.mod h1:3/62I4La/HBRX9TcTpBj4eipLiwzf+vhI+7whTc9V7o=
-github.com/zodimo/go-skia-support v0.1.3 h1:inVYDmh7X5jD5JYapk+/MwRtncb9MkZd173Z6RY3yOg=
-github.com/zodimo/go-skia-support v0.1.3/go.mod h1:lszc4/QOr3jnT21Kr/x27dxmZ1MC3+BK/f2xFb5XC2s=
-github.com/zodimo/go-skia-support v0.1.4 h1:zGorFW/XGvpFzzJ693u6OWqYlqu7B/pKQ0yep0j+bHs=
-github.com/zodimo/go-skia-support v0.1.4/go.mod h1:rdkS+2ehSEHfxrHC52ahIBHfbOZr6tMLVdefM4vzjkQ=
+github.com/zodimo/go-skia-support v0.1.5 h1:ZMh+QAQ/f8O5f441uwzL6fKvQiIOsX0iwSO0oyTauPs=
+github.com/zodimo/go-skia-support v0.1.5/go.mod h1:+BbBCUS21+y74vmB/istgZiHDZ/hfVL2SnDXhK2f53M=
 golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 h1:R84qjqJb5nVJMxqWYb3np9L5ZsaDtB+a39EqjV0JSUM=
 golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0/go.mod h1:S9Xr4PYopiDyqSyp5NjCrhFrqg6A5zA2E/iPHPhqnS8=
 golang.org/x/exp/shiny v0.0.0-20250408133849-7e4ce0ab07d0 h1:tMSqXTK+AQdW3LpCbfatHSRPHeW6+2WuxaVQuHftn80=
