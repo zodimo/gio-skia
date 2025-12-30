@@ -99,6 +99,13 @@ func (c *canvas) drawPathInternal(path SkPath, paint SkPaint) {
 	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
 	defer transformSave.Pop()
 
+	// Apply current clip if it exists
+	ctx := &c.stack[len(c.stack)-1]
+	if ctx.clip != nil {
+		cl := ctx.clip.Push(c.ops)
+		defer cl.Pop()
+	}
+
 	if path.IsEmpty() {
 		return
 	}
@@ -269,8 +276,16 @@ func (c *canvas) DrawPaint(paint SkPaint) {
 	// Fill the entire clip region
 	// Use a very large rectangle to approximate "infinite" canvas
 	internalPaint := skPaintToPaint(paint)
+	// Apply current transformation
 	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
 	defer transformSave.Pop()
+
+	// Apply current clip if it exists
+	ctx := &c.stack[len(c.stack)-1]
+	if ctx.clip != nil {
+		cl := ctx.clip.Push(c.ops)
+		defer cl.Pop()
+	}
 
 	// Draw a full-coverage paint (relies on clip to bound it)
 	gpaint.ColorOp{Color: internalPaint.Color}.Add(c.ops)
