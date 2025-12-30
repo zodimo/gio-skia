@@ -1,8 +1,7 @@
-// Package main demonstrates the SkCanvas image drawing methods.
-// It shows DrawImage and DrawImageRect with procedurally generated images.
 package main
 
 import (
+	"bytes"
 	"image/color"
 	"log"
 	"math"
@@ -12,10 +11,13 @@ import (
 	"gioui.org/app"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"github.com/go-text/typesetting/font"
 	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
+	"github.com/zodimo/go-skia-support/skia/interfaces"
 	"github.com/zodimo/go-skia-support/skia/models"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 func main() {
@@ -32,6 +34,14 @@ func main() {
 func Run(window *app.Window) error {
 	var ops op.Ops
 	startTime := time.Now()
+
+	// Load font
+	parsedFont, err := font.ParseTTF(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		log.Fatalf("failed to parse font: %v", err)
+	}
+	typeface := impl.NewTypefaceWithTypefaceFace("regular", models.FontStyle{}, parsedFont)
+	labelFont := impl.NewFontWithTypefaceAndSize(typeface, 14)
 
 	// Create test images
 	checkerboard := createCheckerboardImage(64, 64, 8)
@@ -60,7 +70,7 @@ func Run(window *app.Window) error {
 			c.Translate(w*0.2, h*0.25)
 
 			// Draw label box
-			drawLabelBox(c, "DrawImage", -40, -90)
+			drawLabelBox(c, "DrawImage", -40, -90, labelFont)
 
 			// Draw image at position
 			c.DrawImage(checkerboard, -32, -32, skia.NewPaint())
@@ -72,7 +82,7 @@ func Run(window *app.Window) error {
 			c.Save()
 			c.Translate(w*0.5, h*0.25)
 
-			drawLabelBox(c, "DrawImageRect (Scale)", -80, -80)
+			drawLabelBox(c, "DrawImageRect (Scale)", -80, -80, labelFont)
 
 			// Draw scaled image - zoom in/out animation
 			scaleFactor := 0.5 + 0.5*float32(math.Sin(elapsed))
@@ -92,7 +102,7 @@ func Run(window *app.Window) error {
 			c.Save()
 			c.Translate(w*0.8, h*0.25)
 
-			drawLabelBox(c, "DrawImageRect (Crop)", -70, -90)
+			drawLabelBox(c, "DrawImageRect (Crop)", -70, -90, labelFont)
 
 			// Animate crop region
 			cropOffset := 20 + 15*float32(math.Sin(elapsed*2))
@@ -112,7 +122,7 @@ func Run(window *app.Window) error {
 			c.Save()
 			c.Translate(w*0.25, h*0.65)
 
-			drawLabelBox(c, "Image + Transforms", -80, -100)
+			drawLabelBox(c, "Image + Transforms", -80, -100, labelFont)
 
 			// Draw rotating images in a circle
 			for i := 0; i < 6; i++ {
@@ -134,7 +144,7 @@ func Run(window *app.Window) error {
 			c.Save()
 			c.Translate(w*0.7, h*0.65)
 
-			drawLabelBox(c, "Image Grid", -50, -100)
+			drawLabelBox(c, "Image Grid", -50, -100, labelFont)
 
 			// 3x3 grid of scaled images
 			for row := -1; row <= 1; row++ {
@@ -234,8 +244,7 @@ func createPatternImage(width, height int) *impl.RasterImage {
 	return impl.NewRasterImage(imgInfo, pixels, width*4)
 }
 
-func drawLabelBox(c skia.Canvas, label string, x, y float32) {
-	_ = label
+func drawLabelBox(c skia.Canvas, label string, x, y float32, font interfaces.SkFont) {
 	p := skia.NewPaintFill(color.NRGBA{R: 255, G: 255, B: 255, A: 80})
 	box := skia.NewPath()
 	skia.PathMoveTo(box, x, y)
@@ -244,4 +253,8 @@ func drawLabelBox(c skia.Canvas, label string, x, y float32) {
 	skia.PathLineTo(box, x, y+20)
 	box.Close()
 	c.DrawPath(box, p)
+
+	// Draw text
+	textPaint := skia.NewPaintFill(color.NRGBA{R: 0, G: 0, B: 0, A: 255})
+	c.DrawSimpleText([]byte(label), enums.TextEncodingUTF8, x+5, y+14, font, textPaint)
 }

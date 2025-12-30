@@ -477,6 +477,19 @@ func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *interfaces.Rect, d
 	translateOp := op.Affine(f32.Affine2D{}.Offset(f32.Pt(float32(dst.Left), float32(dst.Top)))).Push(c.ops)
 	defer translateOp.Pop()
 
+	// Clip to destination bounds (in destination coordinates, before scaling).
+	// We use a path to allow sub-pixel precision, avoiding the jitter caused by
+	// integer snapping (math.Ceil) when dimensions fluctuate slightly.
+	var path clip.Path
+	path.Begin(c.ops)
+	path.MoveTo(f32.Pt(0, 0))
+	path.LineTo(f32.Pt(dstWidth, 0))
+	path.LineTo(f32.Pt(dstWidth, dstHeight))
+	path.LineTo(f32.Pt(0, dstHeight))
+	path.Close()
+	clipStack := clip.Outline{Path: path.End()}.Op().Push(c.ops)
+	defer clipStack.Pop()
+
 	// Scale from source size to destination size
 	scaleX := float32(dstWidth / srcWidth)
 	scaleY := float32(dstHeight / srcHeight)
@@ -493,12 +506,7 @@ func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *interfaces.Rect, d
 	imgOp := gpaint.NewImageOp(goImage)
 	imgOp.Add(c.ops)
 
-	// Clip to destination bounds (in local coordinates after scaling)
-	clipWidth := int(srcWidth)
-	clipHeight := int(srcHeight)
-	clipRect := clip.Rect{Max: image.Pt(clipWidth, clipHeight)}.Push(c.ops)
 	gpaint.PaintOp{}.Add(c.ops)
-	clipRect.Pop()
 }
 
 // skImageToGoImage converts a SkImage to Go's image.RGBA
