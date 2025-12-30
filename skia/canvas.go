@@ -2,6 +2,8 @@
 package skia
 
 import (
+	"image"
+
 	"gioui.org/f32"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -11,6 +13,7 @@ import (
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/interfaces"
 	"github.com/zodimo/go-skia-support/skia/models"
+	"github.com/zodimo/go-skia-support/skia/shaper"
 )
 
 // Compile-time check that canvas implements Canvas interface
@@ -23,6 +26,7 @@ type canvas struct {
 
 type context struct {
 	xform f32.Affine2D
+	clip  *clip.Op
 }
 
 // NewCanvas returns a Canvas implementation backed by Gio's GPU renderer.
@@ -38,10 +42,9 @@ func NewCanvas(ops *op.Ops) Canvas {
 // ── State management ───────────────────────────────────────────────────
 
 func (c *canvas) Save() int {
-	saveCount := len(c.stack)
 	top := c.stack[len(c.stack)-1]
 	c.stack = append(c.stack, top)
-	return saveCount
+	return len(c.stack)
 }
 
 func (c *canvas) Restore() {
@@ -366,64 +369,335 @@ func (c *canvas) DrawLine(p0, p1 interfaces.Point, paint SkPaint) {
 // ── Image Drawing ───────────────────────────────────────────────────
 
 func (c *canvas) DrawImage(image interfaces.SkImage, left, top Scalar, paint SkPaint) {
-	// TODO: Implement image drawing using Gio's paint.NewImageOp
-	// Requires converting SkImage to image.Image
-	_ = image
-	_ = left
-	_ = top
-	_ = paint
+	if image == nil {
+		return
+	}
+
+	// Convert SkImage to Go image.RGBA
+	goImage := c.skImageToGoImage(image)
+	if goImage == nil {
+		return
+	}
+
+	// Apply current transformation
+	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
+	defer transformSave.Pop()
+
+	// Translate to the target position
+	translateOp := op.Affine(f32.Affine2D{}.Offset(f32.Pt(float32(left), float32(top)))).Push(c.ops)
+	defer translateOp.Pop()
+
+	// Create the image op
+	imgOp := gpaint.NewImageOp(goImage)
+	imgOp.Add(c.ops)
+
+	// Clip to image bounds and paint
+	imgSize := goImage.Bounds().Size()
+	clipRect := clip.Rect{Max: imgSize}.Push(c.ops)
+	gpaint.PaintOp{}.Add(c.ops)
+	clipRect.Pop()
 }
 
-func (c *canvas) DrawImageRect(image interfaces.SkImage, src *interfaces.Rect, dst interfaces.Rect, paint SkPaint) {
-	// TODO: Implement image rect drawing with scaling
-	_ = image
-	_ = src
-	_ = dst
-	_ = paint
+func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *interfaces.Rect, dst interfaces.Rect, paint SkPaint) {
+	if skImg == nil {
+		return
+	}
+
+	// Convert SkImage to Go image.RGBA
+	goImage := c.skImageToGoImage(skImg)
+	if goImage == nil {
+		return
+	}
+
+	// Calculate the source rect (if nil, use full image)
+	var srcRect interfaces.Rect
+	if src != nil {
+		srcRect = *src
+	} else {
+		srcRect = interfaces.Rect{
+			Left:   0,
+			Top:    0,
+			Right:  Scalar(skImg.Width()),
+			Bottom: Scalar(skImg.Height()),
+		}
+	}
+
+	srcWidth := srcRect.Right - srcRect.Left
+	srcHeight := srcRect.Bottom - srcRect.Top
+	dstWidth := dst.Right - dst.Left
+	dstHeight := dst.Bottom - dst.Top
+
+	if srcWidth <= 0 || srcHeight <= 0 || dstWidth <= 0 || dstHeight <= 0 {
+		return
+	}
+
+	// Apply current transformation
+	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
+	defer transformSave.Pop()
+
+	// Translate to destination position
+	translateOp := op.Affine(f32.Affine2D{}.Offset(f32.Pt(float32(dst.Left), float32(dst.Top)))).Push(c.ops)
+	defer translateOp.Pop()
+
+	// Scale from source size to destination size
+	scaleX := float32(dstWidth / srcWidth)
+	scaleY := float32(dstHeight / srcHeight)
+	scaleOp := op.Affine(f32.Affine2D{}.Scale(f32.Pt(0, 0), f32.Pt(scaleX, scaleY))).Push(c.ops)
+	defer scaleOp.Pop()
+
+	// Offset to account for source rect origin
+	if srcRect.Left != 0 || srcRect.Top != 0 {
+		srcOffsetOp := op.Affine(f32.Affine2D{}.Offset(f32.Pt(float32(-srcRect.Left), float32(-srcRect.Top)))).Push(c.ops)
+		defer srcOffsetOp.Pop()
+	}
+
+	// Create the image op
+	imgOp := gpaint.NewImageOp(goImage)
+	imgOp.Add(c.ops)
+
+	// Clip to destination bounds (in local coordinates after scaling)
+	clipWidth := int(srcWidth)
+	clipHeight := int(srcHeight)
+	clipRect := clip.Rect{Max: image.Pt(clipWidth, clipHeight)}.Push(c.ops)
+	gpaint.PaintOp{}.Add(c.ops)
+	clipRect.Pop()
+}
+
+// skImageToGoImage converts a SkImage to Go's image.RGBA
+func (c *canvas) skImageToGoImage(skImg interfaces.SkImage) *image.RGBA {
+	width := skImg.Width()
+	height := skImg.Height()
+	if width <= 0 || height <= 0 {
+		return nil
+	}
+
+	// Create destination image
+	goImg := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	// Try to read pixels from SkImage
+	info := skImg.ImageInfo()
+	dstRowBytes := width * 4 // RGBA = 4 bytes per pixel
+
+	// Read pixels into the Go image's buffer
+	success := skImg.ReadPixels(info, goImg.Pix, dstRowBytes, 0, 0)
+	if !success {
+		return nil
+	}
+
+	return goImg
 }
 
 // ── Clipping ───────────────────────────────────────────────────
 
 func (c *canvas) ClipRect(rect interfaces.Rect, clipOp enums.ClipOp, doAntiAlias bool) {
-	// TODO: Implement clipping - store clip state and apply during drawing
-	// For now, Gio's clip operations are applied at draw time
-	_ = rect
-	_ = clipOp
-	_ = doAntiAlias
+	// Build the clip path
+	clipPath := c.buildRectClipPath(rect)
+	c.applyClip(clipPath, clipOp)
 }
 
 func (c *canvas) ClipRRect(rrect interfaces.RRect, clipOp enums.ClipOp, doAntiAlias bool) {
-	// TODO: Implement RRect clipping
-	_ = rrect
-	_ = clipOp
-	_ = doAntiAlias
+	// Build clip path from RRect
+	path := impl.NewSkPath(enums.PathFillTypeWinding)
+	path.AddRRect(rrect, enums.PathDirectionCW)
+	clipPath := c.buildPathClip(path)
+	c.applyClip(clipPath, clipOp)
 }
 
 func (c *canvas) ClipPath(path SkPath, clipOp enums.ClipOp, doAntiAlias bool) {
-	// TODO: Implement path clipping
-	_ = path
-	_ = clipOp
-	_ = doAntiAlias
+	clipPath := c.buildPathClip(path)
+	c.applyClip(clipPath, clipOp)
+}
+
+// buildRectClipPath creates a Gio clip.Path from a Rect
+func (c *canvas) buildRectClipPath(rect interfaces.Rect) clip.Op {
+	return clip.Rect{
+		Min: image.Pt(int(rect.Left), int(rect.Top)),
+		Max: image.Pt(int(rect.Right), int(rect.Bottom)),
+	}.Op()
+}
+
+// buildPathClip converts a SkPath to Gio clip.Path
+func (c *canvas) buildPathClip(path SkPath) clip.Op {
+	var clipPath clip.Path
+	clipPath.Begin(c.ops)
+
+	verbs := make([]enums.PathVerb, path.CountVerbs())
+	path.GetVerbs(verbs)
+
+	points := make([]interfaces.Point, path.CountPoints())
+	path.GetPoints(points)
+	conicWeights := path.ConicWeights()
+
+	pointIdx := 0
+	conicIdx := 0
+
+	for _, verb := range verbs {
+		switch verb {
+		case enums.PathVerbMove:
+			pt := points[pointIdx]
+			clipPath.MoveTo(f32.Pt(float32(pt.X), float32(pt.Y)))
+			pointIdx++
+		case enums.PathVerbLine:
+			pt := points[pointIdx]
+			clipPath.LineTo(f32.Pt(float32(pt.X), float32(pt.Y)))
+			pointIdx++
+		case enums.PathVerbQuad:
+			ctrl := points[pointIdx]
+			end := points[pointIdx+1]
+			clipPath.QuadTo(
+				f32.Pt(float32(ctrl.X), float32(ctrl.Y)),
+				f32.Pt(float32(end.X), float32(end.Y)),
+			)
+			pointIdx += 2
+		case enums.PathVerbConic:
+			ctrl := points[pointIdx]
+			end := points[pointIdx+1]
+			weight := conicWeights[conicIdx]
+			// Gio doesn't have native conic support, approximate with quad
+			// For weight = 1, conic = quad
+			_ = weight
+			clipPath.QuadTo(
+				f32.Pt(float32(ctrl.X), float32(ctrl.Y)),
+				f32.Pt(float32(end.X), float32(end.Y)),
+			)
+			pointIdx += 2
+			conicIdx++
+		case enums.PathVerbCubic:
+			c1 := points[pointIdx]
+			c2 := points[pointIdx+1]
+			end := points[pointIdx+2]
+			clipPath.CubeTo(
+				f32.Pt(float32(c1.X), float32(c1.Y)),
+				f32.Pt(float32(c2.X), float32(c2.Y)),
+				f32.Pt(float32(end.X), float32(end.Y)),
+			)
+			pointIdx += 3
+		case enums.PathVerbClose:
+			clipPath.Close()
+		}
+	}
+
+	return clip.Outline{Path: clipPath.End()}.Op()
+}
+
+// applyClip stores the clip operation in the context
+// Note: Gio applies clips at draw time, so we track them in the context
+func (c *canvas) applyClip(clipOp clip.Op, op enums.ClipOp) {
+	// For now, we store the clip in context
+	// ClipOp.Intersect is the default, ClipOp.Difference would need special handling
+	ctx := &c.stack[len(c.stack)-1]
+	ctx.clip = &clipOp
 }
 
 // ── Text Drawing ───────────────────────────────────────────────────
 
 func (c *canvas) DrawTextBlob(blob interfaces.SkTextBlob, x, y Scalar, paint SkPaint) {
-	// TODO: Implement using paragraph/shaper modules
-	_ = blob
-	_ = x
-	_ = y
-	_ = paint
+	if blob == nil {
+		return
+	}
+
+	// Cast to concrete type to access runs
+	tb, ok := blob.(*impl.TextBlob)
+	if !ok {
+		return
+	}
+
+	// Apply current transformation
+	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
+	defer transformSave.Pop()
+
+	// Translate to text position
+	translateOp := op.Affine(f32.Affine2D{}.Offset(f32.Pt(float32(x), float32(y)))).Push(c.ops)
+	defer translateOp.Pop()
+
+	// Iterate through all runs in the blob
+	for i := 0; i < tb.RunCount(); i++ {
+		run := tb.Run(i)
+		if run == nil || run.Font == nil {
+			continue
+		}
+
+		typeface := run.Font.Typeface()
+		if typeface == nil {
+			continue
+		}
+
+		// Calculate scale factor from font units to pixels
+		fontSize := run.Font.Size()
+		unitsPerEm := typeface.UnitsPerEm()
+		if unitsPerEm <= 0 {
+			unitsPerEm = 2048 // Default if not available
+		}
+		scaleFactor := fontSize / Scalar(unitsPerEm)
+
+		// Draw each glyph in the run
+		for glyphIdx, glyphID := range run.Glyphs {
+			if glyphIdx >= len(run.Positions) {
+				break
+			}
+			pos := run.Positions[glyphIdx]
+
+			// Get glyph path from typeface
+			glyphPath, err := typeface.GetGlyphPath(uint16(glyphID))
+			if err != nil || glyphPath == nil {
+				continue
+			}
+
+			// Scale and position the glyph
+			c.drawGlyphPath(glyphPath, pos.X, pos.Y, scaleFactor, paint)
+		}
+	}
+}
+
+// drawGlyphPath draws a single glyph path at the specified position with scaling
+func (c *canvas) drawGlyphPath(path interfaces.SkPath, posX, posY, scale Scalar, paint SkPaint) {
+	// Create transform for this glyph: scale and translate
+	// Note: Font paths are typically in font units with Y pointing up,
+	// so we need to flip Y and apply scale
+	glyphXform := f32.Affine2D{}.
+		Scale(f32.Pt(0, 0), f32.Pt(float32(scale), -float32(scale))).
+		Offset(f32.Pt(float32(posX), float32(posY)))
+
+	glyphSave := op.Affine(glyphXform).Push(c.ops)
+	defer glyphSave.Pop()
+
+	// Draw the glyph path (fill)
+	c.DrawPath(path, paint)
 }
 
 func (c *canvas) DrawSimpleText(text []byte, encoding enums.TextEncoding, x, y Scalar, font interfaces.SkFont, paint SkPaint) {
-	// TODO: Shape text using shaper, create blob, draw
-	_ = text
-	_ = encoding
-	_ = x
-	_ = y
-	_ = font
-	_ = paint
+	if len(text) == 0 || font == nil {
+		return
+	}
+
+	// Convert to string (assume UTF-8 for now)
+	var textStr string
+	switch encoding {
+	case enums.TextEncodingUTF8:
+		textStr = string(text)
+	case enums.TextEncodingUTF16, enums.TextEncodingUTF32:
+		// For now, fall back to simple byte-to-string
+		// Full implementation would decode properly
+		textStr = string(text)
+	case enums.TextEncodingGlyphID:
+		// Glyph IDs can't be shaped - would need different path
+		return
+	default:
+		textStr = string(text)
+	}
+
+	// Create shaper and handler
+	hbShaper := shaper.NewHarfbuzzShaper()
+	handler := shaper.NewTextBlobBuilderRunHandler(textStr, models.Point{X: 0, Y: 0})
+
+	// Shape the text (left-to-right, no width limit)
+	hbShaper.Shape(textStr, font, true, 0, handler, nil)
+
+	// Build the text blob
+	blob := handler.MakeBlob()
+	if blob != nil {
+		c.DrawTextBlob(blob, x, y, paint)
+	}
 }
 
 func (c *canvas) DrawString(str string, x, y Scalar, font interfaces.SkFont, paint SkPaint) {
