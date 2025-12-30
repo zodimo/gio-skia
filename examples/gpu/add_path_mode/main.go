@@ -82,11 +82,11 @@ func Run(window *app.Window) error {
 					c.DrawPath(testPath, paint)
 
 					// Translate to the right for the next drawing
-					c.TranslateFloat32(100, 0)
+					c.Translate(100, 0)
 				}
 
 				// Move back left and down for the next row
-				c.TranslateFloat32(-200, 100)
+				c.Translate(-200, 100)
 			}
 
 			frameEvent.Frame(&ops)

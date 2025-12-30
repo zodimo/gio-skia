@@ -47,7 +47,7 @@ func Run(window *app.Window) error {
 
 			// Example 1: Varying alpha levels
 			c.Save()
-			c.TranslateFloat32(startX, startY)
+			c.Translate(startX, startY)
 
 			alphas := []uint8{255, 200, 150, 100, 50}
 			for i, alpha := range alphas {
@@ -61,7 +61,7 @@ func Run(window *app.Window) error {
 
 			// Example 2: Overlapping transparent shapes
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY)
+			c.Translate(startX+spacing, startY)
 
 			// Base circle
 			baseCircle := skia.NewPath()
@@ -89,7 +89,7 @@ func Run(window *app.Window) error {
 
 			// Example 3: Layered transparency with different colors
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing)
+			c.Translate(startX, startY+spacing)
 
 			layers := []struct {
 				x, y, r float32
@@ -112,7 +112,7 @@ func Run(window *app.Window) error {
 
 			// Example 4: Transparency gradient effect
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing)
+			c.Translate(startX+spacing, startY+spacing)
 
 			// Draw overlapping circles with decreasing alpha
 			for i := 0; i < 5; i++ {
@@ -127,7 +127,7 @@ func Run(window *app.Window) error {
 
 			// Example 5: Semi-transparent overlay on background
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*2)
+			c.Translate(startX, startY+spacing*2)
 
 			// Background pattern
 			for i := 0; i < 3; i++ {
@@ -154,7 +154,7 @@ func Run(window *app.Window) error {
 
 			// Example 6: Complex transparency composition
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*2)
+			c.Translate(startX+spacing, startY+spacing*2)
 
 			// Base shape
 			basePath := skia.NewPath()
@@ -182,13 +182,13 @@ func Run(window *app.Window) error {
 
 			// Example 7: Alpha blending demonstration
 			c.Save()
-			c.TranslateFloat32(w/2, h*0.75)
+			c.Translate(w/2, h*0.75)
 
 			// Create a grid of overlapping shapes with different alpha values
 			for i := 0; i < 3; i++ {
 				for j := 0; j < 3; j++ {
 					c.Save()
-					c.TranslateFloat32(float32(i-1)*60, float32(j-1)*60)
+					c.Translate(float32(i-1)*60, float32(j-1)*60)
 
 					p := skia.NewPath()
 					skia.PathAddCircle(p, 0, 0, 30)
@@ -210,4 +210,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-

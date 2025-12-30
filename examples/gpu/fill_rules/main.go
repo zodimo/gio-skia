@@ -9,10 +9,10 @@ import (
 	"gioui.org/app"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
-	"github.com/zodimo/gio-skia/skia"
 )
 
 // This example demonstrates canonical Skia fill rules.
@@ -52,7 +52,7 @@ func Run(window *app.Window) error {
 			// Example 1: Concentric circles - Winding vs EvenOdd
 			// Winding rule: All circles filled (same direction)
 			c.Save()
-			c.TranslateFloat32(startX, startY)
+			c.Translate(startX, startY)
 
 			windingPath := impl.NewSkPath(enums.PathFillTypeWinding)
 			// Outer circle (clockwise)
@@ -66,7 +66,7 @@ func Run(window *app.Window) error {
 
 			// EvenOdd rule: Alternating fill
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY)
+			c.Translate(startX+spacing, startY)
 
 			evenOddPath := impl.NewSkPath(enums.PathFillTypeEvenOdd)
 			// Outer circle (clockwise)
@@ -80,7 +80,7 @@ func Run(window *app.Window) error {
 
 			// Example 2: Overlapping rectangles
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing)
+			c.Translate(startX, startY+spacing)
 
 			// Winding rule - overlapping region filled
 			windingRectPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -96,7 +96,7 @@ func Run(window *app.Window) error {
 			c.Restore()
 
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing)
+			c.Translate(startX+spacing, startY+spacing)
 
 			// EvenOdd rule - overlapping region not filled
 			evenOddRectPath := impl.NewSkPath(enums.PathFillTypeEvenOdd)
@@ -113,7 +113,7 @@ func Run(window *app.Window) error {
 
 			// Example 3: Star with hole (donut shape)
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*2)
+			c.Translate(startX, startY+spacing*2)
 
 			// Winding rule - requires opposite direction for hole
 			windingStarPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -145,7 +145,7 @@ func Run(window *app.Window) error {
 			c.Restore()
 
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*2)
+			c.Translate(startX+spacing, startY+spacing*2)
 
 			// EvenOdd rule - same direction creates hole
 			evenOddStarPath := impl.NewSkPath(enums.PathFillTypeEvenOdd)
@@ -176,7 +176,7 @@ func Run(window *app.Window) error {
 
 			// Example 4: Complex overlapping shapes
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*3)
+			c.Translate(startX, startY+spacing*3)
 
 			// Winding rule - complex overlapping
 			windingComplexPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -193,7 +193,7 @@ func Run(window *app.Window) error {
 			c.Restore()
 
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*3)
+			c.Translate(startX+spacing, startY+spacing*3)
 
 			// EvenOdd rule - complex overlapping
 			evenOddComplexPath := impl.NewSkPath(enums.PathFillTypeEvenOdd)
@@ -213,4 +213,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-

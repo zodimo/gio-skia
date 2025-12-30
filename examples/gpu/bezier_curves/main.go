@@ -42,7 +42,7 @@ func Run(window *app.Window) error {
 
 			// Example 1: Simple Quadratic Bézier Curves
 			c.Save()
-			c.TranslateFloat32(startX, startY)
+			c.Translate(startX, startY)
 
 			// Draw control points and lines
 			paint := skia.NewPaintFill(color.NRGBA{R: 100, G: 100, B: 100, A: 255})
@@ -75,7 +75,7 @@ func Run(window *app.Window) error {
 
 			// Example 2: Cubic Bézier Curves
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY)
+			c.Translate(startX+spacing, startY)
 
 			// Draw control lines
 			paint = skia.NewPaintFill(color.NRGBA{R: 100, G: 100, B: 100, A: 255})
@@ -108,7 +108,7 @@ func Run(window *app.Window) error {
 
 			// Example 3: Smooth Wave Pattern (Connected Quadratic Curves)
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing)
+			c.Translate(startX, startY+spacing)
 			paint = skia.NewPaintFill(color.NRGBA{R: 100, G: 255, B: 150, A: 255})
 			wave := skia.NewPath()
 			skia.PathMoveTo(wave, 0, 25)
@@ -125,7 +125,7 @@ func Run(window *app.Window) error {
 
 			// Example 4: Complex Cubic Curve - Infinity Symbol
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing)
+			c.Translate(startX+spacing, startY+spacing)
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 150, B: 100, A: 255})
 			infinity := skia.NewPath()
 			skia.PathMoveTo(infinity, 0, 25)
@@ -139,7 +139,7 @@ func Run(window *app.Window) error {
 
 			// Example 5: Flower Petals using Bézier Curves
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*2)
+			c.Translate(startX, startY+spacing*2)
 
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 100, A: 255})
 			flower := skia.NewPath()
@@ -177,7 +177,7 @@ func Run(window *app.Window) error {
 
 			// Example 6: Spiral using Cubic Bézier Segments
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*2)
+			c.Translate(startX+spacing, startY+spacing*2)
 			paint = skia.NewPaintFill(color.NRGBA{R: 150, G: 200, B: 255, A: 255})
 			spiral := skia.NewPath()
 			spiralCenterX, spiralCenterY := float32(40), float32(40)
@@ -206,7 +206,7 @@ func Run(window *app.Window) error {
 
 			// Example 7: Heart Shape with Bézier Curves
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*3)
+			c.Translate(startX, startY+spacing*3)
 
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
 			heart := skia.NewPath()
@@ -215,23 +215,23 @@ func Run(window *app.Window) error {
 
 			// Left curve
 			skia.PathMoveTo(heart, heartX, heartY+heartSize*0.3)
-			skia.PathCubeTo(heart, 
+			skia.PathCubeTo(heart,
 				heartX, heartY,
 				heartX-heartSize*0.5, heartY-heartSize*0.5,
 				heartX-heartSize*0.5, heartY,
 			)
-			skia.PathCubeTo(heart, 
+			skia.PathCubeTo(heart,
 				heartX-heartSize*0.5, heartY+heartSize*0.5,
 				heartX, heartY+heartSize*0.8,
 				heartX, heartY+heartSize,
 			)
 			// Right curve
-			skia.PathCubeTo(heart, 
+			skia.PathCubeTo(heart,
 				heartX, heartY+heartSize*0.8,
 				heartX+heartSize*0.5, heartY+heartSize*0.5,
 				heartX+heartSize*0.5, heartY,
 			)
-			skia.PathCubeTo(heart, 
+			skia.PathCubeTo(heart,
 				heartX+heartSize*0.5, heartY-heartSize*0.5,
 				heartX, heartY,
 				heartX, heartY+heartSize*0.3,
@@ -243,7 +243,7 @@ func Run(window *app.Window) error {
 
 			// Example 8: Abstract Art - Flowing Curves
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*3)
+			c.Translate(startX+spacing, startY+spacing*3)
 			colors := []color.NRGBA{
 				{R: 255, G: 100, B: 150, A: 255},
 				{R: 100, G: 200, B: 255, A: 255},

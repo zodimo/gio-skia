@@ -8,8 +8,8 @@ import (
 	"gioui.org/app"
 	"gioui.org/op"
 	"gioui.org/op/paint"
-	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/gio-skia/skia"
+	"github.com/zodimo/go-skia-support/skia/enums"
 )
 
 // This example demonstrates canonical Skia blend modes.
@@ -78,7 +78,7 @@ func Run(window *app.Window) error {
 				y := startY + float32(row)*spacing
 
 				c.Save()
-				c.TranslateFloat32(x, y)
+				c.Translate(x, y)
 
 				// Draw base rectangle (destination)
 				basePath := skia.NewPath()
@@ -97,7 +97,7 @@ func Run(window *app.Window) error {
 
 			// Example: Multiple overlapping shapes with different blend modes
 			c.Save()
-			c.TranslateFloat32(w/2, h*0.75)
+			c.Translate(w/2, h*0.75)
 
 			// Base circle
 			baseCircle := skia.NewPath()
@@ -119,7 +119,7 @@ func Run(window *app.Window) error {
 
 			for _, overlay := range overlays {
 				c.Save()
-				c.TranslateFloat32(overlay.x, overlay.y)
+				c.Translate(overlay.x, overlay.y)
 				overlayPath := skia.NewPath()
 				skia.PathAddCircle(overlayPath, 0, 0, 35)
 				overlayPaint := skia.NewPaintFill(overlay.col)
@@ -134,4 +134,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-

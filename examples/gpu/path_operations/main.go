@@ -8,10 +8,10 @@ import (
 	"gioui.org/app"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
-	"github.com/zodimo/gio-skia/skia"
 )
 
 // This example demonstrates canonical Skia path operations.
@@ -48,7 +48,7 @@ func Run(window *app.Window) error {
 
 			// Example 1: Path addition (combining paths)
 			c.Save()
-			c.TranslateFloat32(startX, startY)
+			c.Translate(startX, startY)
 
 			// Create a path by adding multiple shapes
 			combinedPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -66,7 +66,7 @@ func Run(window *app.Window) error {
 
 			// Example 2: Path transformation
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY)
+			c.Translate(startX+spacing, startY)
 
 			// Create base path
 			basePath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -87,7 +87,7 @@ func Run(window *app.Window) error {
 
 			// Example 3: Path offset
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing)
+			c.Translate(startX, startY+spacing)
 
 			// Create original path
 			originalPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -113,7 +113,7 @@ func Run(window *app.Window) error {
 
 			// Example 4: Complex path construction with arcs
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing)
+			c.Translate(startX+spacing, startY+spacing)
 
 			// Build a complex path using multiple operations
 			complexPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -134,7 +134,7 @@ func Run(window *app.Window) error {
 
 			// Example 5: Path with holes using fill rules
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*2)
+			c.Translate(startX, startY+spacing*2)
 
 			// Create a path with a hole using winding rule
 			holePath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -152,7 +152,7 @@ func Run(window *app.Window) error {
 
 			// Example 6: Path with multiple contours
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*2)
+			c.Translate(startX+spacing, startY+spacing*2)
 
 			// Create path with multiple separate contours
 			multiContourPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -171,7 +171,7 @@ func Run(window *app.Window) error {
 
 			// Example 7: Path bounds demonstration
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*3)
+			c.Translate(startX, startY+spacing*3)
 
 			// Create a path
 			boundsPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -196,7 +196,7 @@ func Run(window *app.Window) error {
 
 			// Example 8: Path with Bézier curves
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*3)
+			c.Translate(startX+spacing, startY+spacing*3)
 
 			// Create a path using Bézier curves
 			bezierPath := impl.NewSkPath(enums.PathFillTypeWinding)
@@ -221,4 +221,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-

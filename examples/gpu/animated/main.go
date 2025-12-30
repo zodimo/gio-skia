@@ -49,8 +49,8 @@ func Run(window *app.Window) error {
 
 			// Animation 1: Rotating Gear
 			c.Save()
-			c.TranslateFloat32(centerX*0.3, centerY*0.3)
-			c.RotateFloat32(float32(elapsed * 0.5 * 180.0 / math.Pi)) // Convert radians to degrees
+			c.Translate(centerX*0.3, centerY*0.3)
+			c.Rotate(float32(elapsed * 0.5 * 180.0 / math.Pi)) // Convert radians to degrees
 			paint := skia.NewPaintFill(color.NRGBA{R: 100, G: 200, B: 255, A: 255})
 			gear := skia.NewPath()
 			gearRadius := float32(40)
@@ -79,8 +79,8 @@ func Run(window *app.Window) error {
 			// Animation 2: Pulsing Circles
 			pulseScale := 0.5 + 0.5*float32(math.Sin(elapsed*2))
 			c.Save()
-			c.TranslateFloat32(centerX*1.5, centerY*0.3)
-			c.ScaleFloat32(pulseScale, pulseScale)
+			c.Translate(centerX*1.5, centerY*0.3)
+			c.Scale(pulseScale, pulseScale)
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 150, A: 255})
 			pulseCircle := skia.NewPath()
 			skia.PathAddCircle(pulseCircle, 0, 0, 30)
@@ -89,8 +89,8 @@ func Run(window *app.Window) error {
 
 			// Animation 3: Spinning Star
 			c.Save()
-			c.TranslateFloat32(centerX*0.3, centerY*1.5)
-			c.RotateFloat32(float32(elapsed * 180.0 / math.Pi)) // Convert radians to degrees
+			c.Translate(centerX*0.3, centerY*1.5)
+			c.Rotate(float32(elapsed * 180.0 / math.Pi)) // Convert radians to degrees
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 100, A: 255})
 			star := skia.NewPath()
 			starRadius := float32(35)
@@ -115,7 +115,7 @@ func Run(window *app.Window) error {
 
 			// Animation 4: Waving Flag (using Bézier curves)
 			c.Save()
-			c.TranslateFloat32(centerX*1.5, centerY*1.5)
+			c.Translate(centerX*1.5, centerY*1.5)
 			paint = skia.NewPaintFill(color.NRGBA{R: 200, G: 50, B: 50, A: 255})
 			flag := skia.NewPath()
 			flagWidth := float32(80)
@@ -150,7 +150,7 @@ func Run(window *app.Window) error {
 
 			// Animation 5: Orbiting Planets
 			c.Save()
-			c.TranslateFloat32(centerX, centerY)
+			c.Translate(centerX, centerY)
 
 			// Central sun
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 50, A: 255})
@@ -165,8 +165,8 @@ func Run(window *app.Window) error {
 			planet1Y := orbit1Radius * float32(math.Sin(orbit1Angle))
 
 			c.Save()
-			c.TranslateFloat32(planet1X, planet1Y)
-			c.RotateFloat32(float32(elapsed * 3 * 180.0 / math.Pi)) // Convert radians to degrees
+			c.Translate(planet1X, planet1Y)
+			c.Rotate(float32(elapsed * 3 * 180.0 / math.Pi)) // Convert radians to degrees
 			paint = skia.NewPaintFill(color.NRGBA{R: 100, G: 150, B: 255, A: 255})
 			planet1 := skia.NewPath()
 			skia.PathAddCircle(planet1, 0, 0, 8)
@@ -180,8 +180,8 @@ func Run(window *app.Window) error {
 			planet2Y := orbit2Radius * float32(math.Sin(orbit2Angle))
 
 			c.Save()
-			c.TranslateFloat32(planet2X, planet2Y)
-			c.RotateFloat32(float32(elapsed * 1.5 * 180.0 / math.Pi)) // Convert radians to degrees
+			c.Translate(planet2X, planet2Y)
+			c.Rotate(float32(elapsed * 1.5 * 180.0 / math.Pi)) // Convert radians to degrees
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
 			planet2 := skia.NewPath()
 			skia.PathAddCircle(planet2, 0, 0, 10)
@@ -211,7 +211,7 @@ func Run(window *app.Window) error {
 			// Animation 6: Morphing Shape
 			morphPhase := float32(math.Sin(elapsed * 1.5))
 			c.Save()
-			c.TranslateFloat32(centerX*0.2, centerY*0.8)
+			c.Translate(centerX*0.2, centerY*0.8)
 			paint = skia.NewPaintFill(color.NRGBA{R: 150, G: 255, B: 150, A: 255})
 			morph := skia.NewPath()
 			points := 8
@@ -233,7 +233,7 @@ func Run(window *app.Window) error {
 
 			// Animation 7: Animated Dash Pattern
 			c.Save()
-			c.TranslateFloat32(centerX*1.8, centerY*0.8)
+			c.Translate(centerX*1.8, centerY*0.8)
 			strokeOpts = stroke.StrokeOpts{
 				Width: 6,
 				Miter: 4,
@@ -252,7 +252,7 @@ func Run(window *app.Window) error {
 
 			// Animation 8: Spiral Growth
 			c.Save()
-			c.TranslateFloat32(centerX*0.2, centerY*0.2)
+			c.Translate(centerX*0.2, centerY*0.2)
 			spiral := skia.NewPath()
 			maxTurns := float32(elapsed * 0.5)
 			if maxTurns > 8 {
@@ -277,11 +277,11 @@ func Run(window *app.Window) error {
 
 			// Animation 9: Bouncing Balls
 			c.Save()
-			c.TranslateFloat32(centerX*1.8, centerY*0.2)
+			c.Translate(centerX*1.8, centerY*0.2)
 			for i := 0; i < 3; i++ {
 				bounceHeight := float32(math.Abs(math.Sin(elapsed*2+float64(i)*0.5))) * 30
 				c.Save()
-				c.TranslateFloat32(float32(i*25-25), bounceHeight)
+				c.Translate(float32(i*25-25), bounceHeight)
 				paint = skia.NewPaintFill(color.NRGBA{
 					R: uint8(100 + i*50),
 					G: uint8(150 + i*30),
@@ -298,8 +298,8 @@ func Run(window *app.Window) error {
 			// Animation 10: Heartbeat (pulsing heart)
 			heartbeatScale := 1.0 + 0.3*float32(math.Abs(math.Sin(elapsed*4)))
 			c.Save()
-			c.TranslateFloat32(centerX*0.5, centerY*1.8)
-			c.ScaleFloat32(heartbeatScale, heartbeatScale)
+			c.Translate(centerX*0.5, centerY*1.8)
+			c.Scale(heartbeatScale, heartbeatScale)
 			paint = skia.NewPaintFill(color.NRGBA{R: 255, G: 50, B: 50, A: 255})
 			heart := skia.NewPath()
 			heartSize := float32(20)

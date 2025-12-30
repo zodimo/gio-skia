@@ -8,9 +8,9 @@ import (
 	"gioui.org/app"
 	"gioui.org/op"
 	"gioui.org/op/paint"
+	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
-	"github.com/zodimo/gio-skia/skia"
 )
 
 // This example demonstrates canonical Skia matrix operations.
@@ -48,7 +48,7 @@ func Run(window *app.Window) error {
 
 			// Example 1: Matrix concatenation (pre vs post)
 			c.Save()
-			c.TranslateFloat32(startX, startY)
+			c.Translate(startX, startY)
 
 			// Base shape
 			basePath := skia.NewPath()
@@ -56,16 +56,16 @@ func Run(window *app.Window) error {
 
 			// Pre-concatenation: translate then rotate
 			c.Save()
-			c.TranslateFloat32(-30, 0)
-			c.RotateFloat32(45)
+			c.Translate(-30, 0)
+			c.Rotate(45)
 			prePaint := skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 100, A: 255})
 			c.DrawPath(basePath, prePaint)
 			c.Restore()
 
 			// Post-concatenation: rotate then translate
 			c.Save()
-			c.RotateFloat32(45)
-			c.TranslateFloat32(30, 0)
+			c.Rotate(45)
+			c.Translate(30, 0)
 			postPaint := skia.NewPaintFill(color.NRGBA{R: 100, G: 255, B: 100, A: 255})
 			c.DrawPath(basePath, postPaint)
 			c.Restore()
@@ -74,7 +74,7 @@ func Run(window *app.Window) error {
 
 			// Example 2: Matrix multiplication
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY)
+			c.Translate(startX+spacing, startY)
 
 			// Create matrices and multiply them
 			translateMatrix := impl.NewMatrixTranslate(models.Scalar(30), models.Scalar(0))
@@ -96,7 +96,7 @@ func Run(window *app.Window) error {
 
 			// Example 3: Matrix inversion
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing)
+			c.Translate(startX, startY+spacing)
 
 			// Create a transformation
 			transformMatrix := impl.NewMatrixRotate(30)
@@ -128,7 +128,7 @@ func Run(window *app.Window) error {
 
 			// Example 4: Point mapping
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing)
+			c.Translate(startX+spacing, startY+spacing)
 
 			// Create transformation matrix
 			mapMatrix := impl.NewMatrixRotate(60)
@@ -164,7 +164,7 @@ func Run(window *app.Window) error {
 
 			// Example 5: Matrix type classification
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*2)
+			c.Translate(startX, startY+spacing*2)
 
 			// Identity matrix
 			identityMatrix := impl.NewMatrixIdentity()
@@ -190,7 +190,7 @@ func Run(window *app.Window) error {
 
 			// Example 6: Complex matrix chain
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*2)
+			c.Translate(startX+spacing, startY+spacing*2)
 
 			// Build a complex transformation chain
 			chainMatrix := impl.NewMatrixIdentity()
@@ -209,7 +209,7 @@ func Run(window *app.Window) error {
 
 			// Example 7: Matrix with pivot point rotation
 			c.Save()
-			c.TranslateFloat32(startX, startY+spacing*3)
+			c.Translate(startX, startY+spacing*3)
 
 			// Rotate around a pivot point
 			pivotX, pivotY := models.Scalar(30), models.Scalar(30)
@@ -231,7 +231,7 @@ func Run(window *app.Window) error {
 
 			// Example 8: Matrix decomposition demonstration
 			c.Save()
-			c.TranslateFloat32(startX+spacing, startY+spacing*3)
+			c.Translate(startX+spacing, startY+spacing*3)
 
 			// Create a complex matrix
 			complexMatrix := impl.NewMatrixRotate(30)
@@ -251,4 +251,3 @@ func Run(window *app.Window) error {
 		}
 	}
 }
-
