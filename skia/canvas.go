@@ -26,7 +26,7 @@ type canvas struct {
 
 type context struct {
 	xform f32.Affine2D
-	clip  *clip.Op
+	clips []clip.Op
 }
 
 // NewCanvas returns a Canvas implementation backed by Gio's GPU renderer.
@@ -43,7 +43,15 @@ func NewCanvas(ops *op.Ops) Canvas {
 
 func (c *canvas) Save() int {
 	top := c.stack[len(c.stack)-1]
-	c.stack = append(c.stack, top)
+	// Deep copy the clips slice to ensure isolation
+	newClips := make([]clip.Op, len(top.clips))
+	copy(newClips, top.clips)
+
+	newCtx := context{
+		xform: top.xform,
+		clips: newClips,
+	}
+	c.stack = append(c.stack, newCtx)
 	return len(c.stack)
 }
 
@@ -96,15 +104,16 @@ func (c *canvas) RotateFloat32(degrees float32) {
 func (c *canvas) drawPathInternal(path SkPath, paint SkPaint) {
 	// Convert SkPaint to our internal Paint type for rendering
 	internalPaint := skPaintToPaint(paint)
+	// Apply all clips in the current context
+	// These are stored in device space, so apply them BEFORE the current transform
+	ctx := &c.stack[len(c.stack)-1]
+	for _, cl := range ctx.clips {
+		stack := cl.Push(c.ops)
+		defer stack.Pop()
+	}
+
 	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
 	defer transformSave.Pop()
-
-	// Apply current clip if it exists
-	ctx := &c.stack[len(c.stack)-1]
-	if ctx.clip != nil {
-		cl := ctx.clip.Push(c.ops)
-		defer cl.Pop()
-	}
 
 	if path.IsEmpty() {
 		return
@@ -276,16 +285,16 @@ func (c *canvas) DrawPaint(paint SkPaint) {
 	// Fill the entire clip region
 	// Use a very large rectangle to approximate "infinite" canvas
 	internalPaint := skPaintToPaint(paint)
+	// Apply all clips in the current context
+	ctx := &c.stack[len(c.stack)-1]
+	for _, cl := range ctx.clips {
+		stack := cl.Push(c.ops)
+		defer stack.Pop()
+	}
+
 	// Apply current transformation
 	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
 	defer transformSave.Pop()
-
-	// Apply current clip if it exists
-	ctx := &c.stack[len(c.stack)-1]
-	if ctx.clip != nil {
-		cl := ctx.clip.Push(c.ops)
-		defer cl.Pop()
-	}
 
 	// Draw a full-coverage paint (relies on clip to bound it)
 	gpaint.ColorOp{Color: internalPaint.Color}.Add(c.ops)
@@ -394,6 +403,13 @@ func (c *canvas) DrawImage(image interfaces.SkImage, left, top Scalar, paint SkP
 		return
 	}
 
+	// Apply all clips
+	ctx := &c.stack[len(c.stack)-1]
+	for _, cl := range ctx.clips {
+		stack := cl.Push(c.ops)
+		defer stack.Pop()
+	}
+
 	// Apply current transformation
 	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
 	defer transformSave.Pop()
@@ -444,6 +460,13 @@ func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *interfaces.Rect, d
 
 	if srcWidth <= 0 || srcHeight <= 0 || dstWidth <= 0 || dstHeight <= 0 {
 		return
+	}
+
+	// Apply all clips
+	ctx := &c.stack[len(c.stack)-1]
+	for _, cl := range ctx.clips {
+		stack := cl.Push(c.ops)
+		defer stack.Pop()
 	}
 
 	// Apply current transformation
@@ -506,29 +529,39 @@ func (c *canvas) skImageToGoImage(skImg interfaces.SkImage) *image.RGBA {
 
 func (c *canvas) ClipRect(rect interfaces.Rect, clipOp enums.ClipOp, doAntiAlias bool) {
 	// Build the clip path
-	clipPath := c.buildRectClipPath(rect)
-	c.applyClip(clipPath, clipOp)
+	path := impl.NewSkPath(enums.PathFillTypeWinding)
+	path.AddRect(rect, enums.PathDirectionCW, 0)
+	c.clipPathInternal(path, clipOp, doAntiAlias)
 }
 
 func (c *canvas) ClipRRect(rrect interfaces.RRect, clipOp enums.ClipOp, doAntiAlias bool) {
 	// Build clip path from RRect
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddRRect(rrect, enums.PathDirectionCW)
-	clipPath := c.buildPathClip(path)
-	c.applyClip(clipPath, clipOp)
+	c.clipPathInternal(path, clipOp, doAntiAlias)
 }
 
 func (c *canvas) ClipPath(path SkPath, clipOp enums.ClipOp, doAntiAlias bool) {
-	clipPath := c.buildPathClip(path)
-	c.applyClip(clipPath, clipOp)
+	c.clipPathInternal(path, clipOp, doAntiAlias)
 }
 
-// buildRectClipPath creates a Gio clip.Path from a Rect
-func (c *canvas) buildRectClipPath(rect interfaces.Rect) clip.Op {
-	return clip.Rect{
-		Min: image.Pt(int(rect.Left), int(rect.Top)),
-		Max: image.Pt(int(rect.Right), int(rect.Bottom)),
-	}.Op()
+func (c *canvas) clipPathInternal(path SkPath, clipOp enums.ClipOp, doAntiAlias bool) {
+	// 1. Transform path to device space (current context transform)
+	// We need to bake the current transform into the clip path because
+	// we will apply these clips *before* applying the transform stack during draw.
+	ctx := &c.stack[len(c.stack)-1]
+	currentMatrix := affine2DToSkMatrix(ctx.xform)
+
+	// Copy path to avoid modifying the input
+	// TODO: Clone path? For now assuming input path can be modified or we should make a new one?
+	// SkCanvas ClipPath takes const SkPath&, so we should arguably copy.
+	// But go-skia-support Path might be mutable ref.
+	// Let's create a new path and AddPath(path, matrix)
+	devicePath := impl.NewSkPath(path.FillType())
+	devicePath.AddPathMatrix(path, currentMatrix, enums.AddPathModeAppend)
+
+	clipPath := c.buildPathClip(devicePath)
+	c.applyClip(clipPath, clipOp)
 }
 
 // buildPathClip converts a SkPath to Gio clip.Path
@@ -597,11 +630,14 @@ func (c *canvas) buildPathClip(path SkPath) clip.Op {
 
 // applyClip stores the clip operation in the context
 // Note: Gio applies clips at draw time, so we track them in the context
+// applyClip stores the clip operation in the context
+// Note: Gio applies clips at draw time, so we track them in the context
 func (c *canvas) applyClip(clipOp clip.Op, op enums.ClipOp) {
-	// For now, we store the clip in context
-	// ClipOp.Intersect is the default, ClipOp.Difference would need special handling
+	// Append the new clip to the current context
+	// We currently treat all clips as Intersect (the default behavior of sequential clips)
+	// TODO: Handle ClipOp.Difference if needed (requires more complex masking)
 	ctx := &c.stack[len(c.stack)-1]
-	ctx.clip = &clipOp
+	ctx.clips = append(ctx.clips, clipOp)
 }
 
 // ── Text Drawing ───────────────────────────────────────────────────
@@ -616,14 +652,6 @@ func (c *canvas) DrawTextBlob(blob interfaces.SkTextBlob, x, y Scalar, paint SkP
 	if !ok {
 		return
 	}
-
-	// Apply current transformation
-	transformSave := op.Affine(c.stack[len(c.stack)-1].xform).Push(c.ops)
-	defer transformSave.Pop()
-
-	// Translate to text position
-	translateOp := op.Affine(f32.Affine2D{}.Offset(f32.Pt(float32(x), float32(y)))).Push(c.ops)
-	defer translateOp.Pop()
 
 	// Iterate through all runs in the blob
 	for i := 0; i < tb.RunCount(); i++ {
@@ -659,25 +687,31 @@ func (c *canvas) DrawTextBlob(blob interfaces.SkTextBlob, x, y Scalar, paint SkP
 			}
 
 			// Scale and position the glyph
-			c.drawGlyphPath(glyphPath, pos.X, pos.Y, scaleFactor, paint)
+			// Note: We bake the blob origin (x, y) into the glyph position
+			c.drawGlyphPath(glyphPath, pos.X+x, pos.Y+y, scaleFactor, paint)
 		}
 	}
 }
 
 // drawGlyphPath draws a single glyph path at the specified position with scaling
 func (c *canvas) drawGlyphPath(path interfaces.SkPath, posX, posY, scale Scalar, paint SkPaint) {
-	// Create transform for this glyph: scale and translate
+	// Create transform matrix for this glyph: Translate * Scale
 	// Note: Font paths are typically in font units with Y pointing up,
 	// so we need to flip Y and apply scale
-	glyphXform := f32.Affine2D{}.
-		Scale(f32.Pt(0, 0), f32.Pt(float32(scale), -float32(scale))).
-		Offset(f32.Pt(float32(posX), float32(posY)))
+	scaleM := impl.NewMatrixScale(scale, -scale)
+	transM := impl.NewMatrixTranslate(posX, posY)
 
-	glyphSave := op.Affine(glyphXform).Push(c.ops)
-	defer glyphSave.Pop()
+	// Combine: T * S
+	matrix := impl.NewMatrixIdentity()
+	matrix.SetConcat(transM, scaleM)
 
-	// Draw the glyph path (fill)
-	c.DrawPath(path, paint)
+	// Transform the path
+	transformedPath := impl.NewSkPath(path.FillType())
+	transformedPath.AddPathMatrix(path, matrix, enums.AddPathModeAppend)
+
+	// Draw the transformed path using DrawPath
+	// This ensures proper CTM application and clipping
+	c.DrawPath(transformedPath, paint)
 }
 
 func (c *canvas) DrawSimpleText(text []byte, encoding enums.TextEncoding, x, y Scalar, font interfaces.SkFont, paint SkPaint) {

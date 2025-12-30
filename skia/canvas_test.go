@@ -598,3 +598,22 @@ func TestCanvas_ClipEmptyPath_Parity(t *testing.T) {
 	canvas.ClipPath(path3, enums.ClipOpIntersect, false) // should not panic
 	canvas.Restore()
 }
+
+func TestCanvas_ClipStack(t *testing.T) {
+	// regression test for clip stack isolation
+	ops := new(op.Ops)
+	c := NewCanvas(ops)
+
+	rect := models.Rect{Left: 0, Top: 0, Right: 100, Bottom: 100}
+	c.ClipRect(rect, enums.ClipOpIntersect, true)
+
+	c.Save()
+	c.Translate(10, 10)
+	c.ClipRect(rect, enums.ClipOpIntersect, true)
+	c.DrawRect(rect, NewPaint())
+	c.Restore()
+
+	// Should be back to 1 clip
+	// Verify no panic on Draw
+	c.DrawRect(rect, NewPaint())
+}
