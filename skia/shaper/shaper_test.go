@@ -38,6 +38,14 @@ func (m *MockFont) Size() models.Scalar {
 	return models.Scalar(m.size)
 }
 
+func (m *MockFont) ScaleX() models.Scalar {
+	return 1.0 // Default scale
+}
+
+func (m *MockFont) SkewX() models.Scalar {
+	return 0.0 // Default skew
+}
+
 // MockRunHandler captures calls
 type MockRunHandler struct {
 	BeginLineCalled     bool
