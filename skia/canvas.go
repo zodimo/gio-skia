@@ -67,7 +67,9 @@ func (c *canvas) Concat(matrix SkMatrix) {
 	currentMatrix := affine2DToSkMatrix(top.xform)
 	// Create a new matrix for the result
 	resultMatrix := impl.NewMatrixIdentity()
-	resultMatrix.SetConcat(matrix, currentMatrix)
+	// Apply new matrix AFTER current matrix (Post-concatenation)
+	// NewCTM = CTM * Matrix
+	resultMatrix.SetConcat(currentMatrix, matrix)
 	top.xform = skMatrixToAffine2D(resultMatrix)
 }
 
