@@ -8,7 +8,6 @@ import (
 
 	"gioui.org/app"
 	"gioui.org/op"
-	"gioui.org/op/paint"
 	"github.com/go-text/typesetting/font"
 	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/impl"
@@ -45,11 +44,11 @@ func Run(window *app.Window) error {
 		case app.FrameEvent:
 			ops.Reset()
 
-			// Clear background to white
-			paint.ColorOp{Color: color.NRGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}}.Add(&ops)
-			paint.PaintOp{}.Add(&ops)
-
 			canvas := skia.NewCanvas(&ops)
+
+			// Clear background to white
+			canvas.Clear(skia.ColorToColor4f(color.NRGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}))
+
 			draw(canvas, typeface)
 
 			e.Frame(&ops)
