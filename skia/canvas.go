@@ -680,6 +680,9 @@ func (c *canvas) DrawTextBlob(blob interfaces.SkTextBlob, x, y Scalar, paint SkP
 			unitsPerEm = 2048 // Default if not available
 		}
 		scaleFactor := fontSize / Scalar(unitsPerEm)
+		scaleX := scaleFactor * run.Font.ScaleX()
+		scaleY := scaleFactor
+		skewX := run.Font.SkewX()
 
 		// Draw each glyph in the run
 		for glyphIdx, glyphID := range run.Glyphs {
@@ -696,22 +699,26 @@ func (c *canvas) DrawTextBlob(blob interfaces.SkTextBlob, x, y Scalar, paint SkP
 
 			// Scale and position the glyph
 			// Note: We bake the blob origin (x, y) into the glyph position
-			c.drawGlyphPath(glyphPath, pos.X+x, pos.Y+y, scaleFactor, paint)
+			c.drawGlyphPath(glyphPath, pos.X+x, pos.Y+y, scaleX, scaleY, skewX, paint)
 		}
 	}
 }
 
-// drawGlyphPath draws a single glyph path at the specified position with scaling
-func (c *canvas) drawGlyphPath(path interfaces.SkPath, posX, posY, scale Scalar, paint SkPaint) {
-	// Create transform matrix for this glyph: Translate * Scale
+// drawGlyphPath draws a single glyph path at the specified position with scaling and skew
+func (c *canvas) drawGlyphPath(path interfaces.SkPath, posX, posY, scaleX, scaleY, skewX Scalar, paint SkPaint) {
+	// Create transform matrix for this glyph: Translate * Skew * Scale
 	// Note: Font paths are typically in font units with Y pointing up,
-	// so we need to flip Y and apply scale
-	scaleM := impl.NewMatrixScale(scale, -scale)
+	// so we need to flip Y (scaleY is likely passed as positive, so we flip it here)
+	scaleM := impl.NewMatrixScale(scaleX, -scaleY)
+	skewM := impl.NewMatrixSkew(skewX, 0)
 	transM := impl.NewMatrixTranslate(posX, posY)
 
-	// Combine: T * S
+	// Combine: T * Sk * Sc
 	matrix := impl.NewMatrixIdentity()
-	matrix.SetConcat(transM, scaleM)
+	matrix.SetConcat(skewM, scaleM)
+	tmp := impl.NewMatrixIdentity() // Helper because SetConcat takes (A, B) -> A*B
+	tmp.SetConcat(transM, matrix)   // T * (Sk * Sc)
+	matrix = tmp
 
 	// Transform the path
 	transformedPath := impl.NewSkPath(path.FillType())
