@@ -703,7 +703,50 @@ func (c *canvas) DrawTextBlob(blob interfaces.SkTextBlob, x, y Scalar, paint SkP
 		scaleY := scaleFactor
 		skewX := run.Font.SkewX()
 
-		// Draw each glyph in the run
+		// Helper helper to clean up matrix creation
+		// baseMatrix = Skew * Scale(units->pixels)
+		scaleM := impl.NewMatrixScale(scaleFactor*run.Font.ScaleX(), -scaleFactor)
+		skewM := impl.NewMatrixSkew(skewX, 0)
+		baseMatrix := impl.NewMatrixIdentity()
+		baseMatrix.SetConcat(skewM, scaleM)
+
+		// Check for RSXforms
+		if len(run.RSXforms) > 0 {
+			for glyphIdx, glyphID := range run.Glyphs {
+				if glyphIdx >= len(run.RSXforms) {
+					break
+				}
+				xform := run.RSXforms[glyphIdx]
+
+				// Get glyph path
+				glyphPath, err := typeface.GetGlyphPath(uint16(glyphID))
+				if err != nil || glyphPath == nil {
+					continue
+				}
+
+				// Create RSXform matrix
+				// [ SCos  -SSin  Tx ]
+				// [ SSin   SCos  Ty ]
+				// [ 0      0     1  ]
+				rsMatrix := impl.NewMatrixAll(
+					xform.SCos, -xform.SSin, xform.Tx+x,
+					xform.SSin, xform.SCos, xform.Ty+y,
+					0, 0, 1,
+				)
+
+				// Combine: Final = RS * Base
+				matrix := impl.NewMatrixIdentity()
+				matrix.SetConcat(rsMatrix, baseMatrix)
+
+				// Transform path
+				transformedPath := impl.NewSkPath(glyphPath.FillType())
+				transformedPath.AddPathMatrix(glyphPath, matrix, enums.AddPathModeAppend)
+
+				// Draw
+				c.DrawPath(transformedPath, paint)
+			}
+			continue
+		}
 		for glyphIdx, glyphID := range run.Glyphs {
 			if glyphIdx >= len(run.Positions) {
 				break
