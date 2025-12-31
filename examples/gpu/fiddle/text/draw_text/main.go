@@ -67,7 +67,6 @@ func draw(canvas skia.Canvas, typeface interfaces.SkTypeface) {
 	textSizes := []float32{12, 18, 24, 36}
 
 	// First loop: Changing font size
-	canvas.Save()
 	for _, size := range textSizes {
 		defaultFont.SetSize(size)
 		// canvas->drawString("Aa", 10, 20, defaultFont, paint);
@@ -75,7 +74,6 @@ func draw(canvas skia.Canvas, typeface interfaces.SkTypeface) {
 		// canvas->translate(0, size * 2);
 		canvas.Translate(0, size*2)
 	}
-	canvas.Restore() // Restore to clean state for next loop
 
 	// Reset font to initial state (though we set size in loop anyway)
 	defaultFont.SetSize(12)
@@ -87,9 +85,7 @@ func draw(canvas skia.Canvas, typeface interfaces.SkTypeface) {
 		scale := size / 12.0
 
 		// canvas->resetMatrix(); equivalent here is essentially starting fresh or restoring
-		// Since we want to emulate the C++ loop where each iteration starts "fresh" relative to the canvas origin
-		// but accumulates yPos manually, we use Save/Restore per iteration.
-		canvas.Save()
+		canvas.ResetMatrix()
 
 		// canvas->translate(100, 0);
 		canvas.Translate(100, 0)
@@ -99,8 +95,6 @@ func draw(canvas skia.Canvas, typeface interfaces.SkTypeface) {
 
 		// canvas->drawString("Aa", 10 / scale, yPos / scale, defaultFont, paint);
 		canvas.DrawString("Aa", 10/scale, yPos/scale, defaultFont, paint)
-
-		canvas.Restore()
 
 		yPos += size * 2
 	}
