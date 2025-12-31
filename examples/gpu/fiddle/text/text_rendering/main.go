@@ -8,7 +8,6 @@ import (
 
 	"gioui.org/app"
 	"gioui.org/op"
-	"gioui.org/op/paint"
 	"github.com/go-text/typesetting/font"
 	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/enums"
@@ -75,12 +74,11 @@ func Run(window *app.Window) error {
 		case app.FrameEvent:
 			ops.Reset()
 
+			c := skia.NewCanvas(&ops)
+
 			// Clear background to white
 			// canvas->clear(SK_ColorWHITE);
-			paint.ColorOp{Color: color.NRGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}}.Add(&ops)
-			paint.PaintOp{}.Add(&ops)
-
-			c := skia.NewCanvas(&ops)
+			c.Clear(skia.ColorToColor4f(color.NRGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}))
 
 			// canvas->drawTextBlob(blob1.get(), 20.0f, 64.0f, paint1);
 			if blob1 != nil {
