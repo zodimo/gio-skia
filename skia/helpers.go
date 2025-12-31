@@ -47,9 +47,10 @@ func skMatrixToAffine2D(matrix SkMatrix) f32.Affine2D {
 // Paint is an internal type used for rendering.
 // It's converted from SkPaint for GioUI rendering.
 type Paint struct {
-	Color  color.NRGBA
-	Stroke stroke.StrokeOpts
-	Fill   bool
+	Color     color.NRGBA
+	Stroke    stroke.StrokeOpts
+	Fill      bool
+	BlendMode enums.BlendMode
 }
 
 // skPaintToPaint converts SkPaint to our internal Paint type for rendering.
@@ -64,6 +65,9 @@ func skPaintToPaint(skPaint interfaces.SkPaint) Paint {
 		B: uint8(color4f.B * 255),
 		A: uint8(color4f.A * 255),
 	}
+
+	// Get blend mode
+	p.BlendMode = skPaint.GetBlendModeOr(enums.BlendModeSrcOver)
 
 	// Get style
 	style := skPaint.GetStyle()

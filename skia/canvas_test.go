@@ -617,3 +617,19 @@ func TestCanvas_ClipStack(t *testing.T) {
 	// Verify no panic on Draw
 	c.DrawRect(rect, NewPaint())
 }
+
+func TestCanvas_DrawColor_Clear_Reset(t *testing.T) {
+	ops := new(op.Ops)
+	canvas := NewCanvas(ops)
+
+	// Test ResetMatrix
+	canvas.Translate(10, 20)
+	canvas.ResetMatrix()
+
+	// Test DrawColor
+	color := models.Color4f{R: 1, G: 0, B: 0, A: 1}
+	canvas.DrawColor(color, enums.BlendModeSrcOver)
+
+	// Test Clear
+	canvas.Clear(models.Color4f{R: 0, G: 0, B: 1, A: 1})
+}

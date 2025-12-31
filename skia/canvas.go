@@ -283,6 +283,23 @@ func (c *canvas) Skew(sx, sy Scalar) {
 
 // ── Drawing Primitives ───────────────────────────────────────────────────
 
+func (c *canvas) ResetMatrix() {
+	if len(c.stack) > 0 {
+		c.stack[len(c.stack)-1].xform = f32.Affine2D{}
+	}
+}
+
+func (c *canvas) DrawColor(color models.Color4f, mode enums.BlendMode) {
+	paint := NewPaint()
+	paint.SetColor(color)
+	paint.SetBlendMode(mode)
+	c.DrawPaint(paint)
+}
+
+func (c *canvas) Clear(color models.Color4f) {
+	c.DrawColor(color, enums.BlendModeSrc)
+}
+
 func (c *canvas) DrawPaint(paint SkPaint) {
 	// Fill the entire clip region
 	// Use a very large rectangle to approximate "infinite" canvas

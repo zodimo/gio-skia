@@ -6,7 +6,7 @@ require (
 	gioui.org v0.9.0
 	github.com/andybalholm/stroke v0.0.0-20221221101821-bd29b49d73f0
 	github.com/go-text/typesetting v0.3.2
-	github.com/zodimo/go-skia-support v0.1.9
+	github.com/zodimo/go-skia-support v0.1.11
 	golang.org/x/image v0.34.0
 )
 
