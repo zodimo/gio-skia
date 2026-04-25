@@ -315,7 +315,7 @@ func TestCanvas_DrawTextBlob_WithRealBlob_Parity(t *testing.T) {
 	canvas := NewCanvas(ops)
 
 	// Create a real font with typeface
-	typeface := impl.NewTypeface("sans-serif", impl.FontStyle{})
+	typeface := impl.NewTypeface("sans-serif", models.FontStyle{})
 	font := impl.NewFontWithTypefaceAndSize(typeface, 24)
 
 	// Create text blob from string
@@ -340,7 +340,7 @@ func TestCanvas_DrawTextBlob_WithRealBlob_Parity(t *testing.T) {
 // TestCanvas_TextBlob_RunIteration_Parity tests that we can iterate blob runs
 func TestCanvas_TextBlob_RunIteration_Parity(t *testing.T) {
 	// Create font
-	typeface := impl.NewTypeface("sans-serif", impl.FontStyle{})
+	typeface := impl.NewTypeface("sans-serif", models.FontStyle{})
 	font := impl.NewFontWithTypefaceAndSize(typeface, 16)
 
 	// Create text blob

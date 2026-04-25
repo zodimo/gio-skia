@@ -10,6 +10,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/paint"
 	"github.com/zodimo/gio-skia/skia"
+	"github.com/zodimo/go-skia-support/skia/base"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
@@ -131,14 +132,14 @@ func Run(window *app.Window) error {
 				x := radius * float32(math.Cos(float64(angle-math.Pi/2)))
 				y := radius * float32(math.Sin(float64(angle-math.Pi/2)))
 				if i == 0 {
-					windingStarPath.MoveTo(models.Scalar(x), models.Scalar(y))
+					windingStarPath.MoveTo(base.Scalar(x), base.Scalar(y))
 				} else {
-					windingStarPath.LineTo(models.Scalar(x), models.Scalar(y))
+					windingStarPath.LineTo(base.Scalar(x), base.Scalar(y))
 				}
 			}
 			windingStarPath.Close()
 			// Inner circle (counter-clockwise) creates hole
-			windingStarPath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(15), enums.PathDirectionCCW)
+			windingStarPath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(15), enums.PathDirectionCCW)
 			windingStarPaint := skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 100, A: 255})
 			c.DrawPath(windingStarPath, windingStarPaint)
 
@@ -161,14 +162,14 @@ func Run(window *app.Window) error {
 				x := radius * float32(math.Cos(float64(angle-math.Pi/2)))
 				y := radius * float32(math.Sin(float64(angle-math.Pi/2)))
 				if i == 0 {
-					evenOddStarPath.MoveTo(models.Scalar(x), models.Scalar(y))
+					evenOddStarPath.MoveTo(base.Scalar(x), base.Scalar(y))
 				} else {
-					evenOddStarPath.LineTo(models.Scalar(x), models.Scalar(y))
+					evenOddStarPath.LineTo(base.Scalar(x), base.Scalar(y))
 				}
 			}
 			evenOddStarPath.Close()
 			// Inner circle (clockwise) creates hole with even-odd
-			evenOddStarPath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(15), enums.PathDirectionCW)
+			evenOddStarPath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(15), enums.PathDirectionCW)
 			evenOddStarPaint := skia.NewPaintFill(color.NRGBA{R: 200, G: 100, B: 255, A: 255})
 			c.DrawPath(evenOddStarPath, evenOddStarPaint)
 
@@ -185,7 +186,7 @@ func Run(window *app.Window) error {
 				angle := float32(i) * math.Pi * 2 / 3
 				cx := 20 * float32(math.Cos(float64(angle)))
 				cy := 20 * float32(math.Sin(float64(angle)))
-				windingComplexPath.AddCircle(models.Scalar(cx), models.Scalar(cy), models.Scalar(30), enums.PathDirectionCW)
+				windingComplexPath.AddCircle(base.Scalar(cx), base.Scalar(cy), base.Scalar(30), enums.PathDirectionCW)
 			}
 			windingComplexPaint := skia.NewPaintFill(color.NRGBA{R: 150, G: 200, B: 255, A: 255})
 			c.DrawPath(windingComplexPath, windingComplexPaint)
@@ -202,7 +203,7 @@ func Run(window *app.Window) error {
 				angle := float32(i) * math.Pi * 2 / 3
 				cx := 20 * float32(math.Cos(float64(angle)))
 				cy := 20 * float32(math.Sin(float64(angle)))
-				evenOddComplexPath.AddCircle(models.Scalar(cx), models.Scalar(cy), models.Scalar(30), enums.PathDirectionCW)
+				evenOddComplexPath.AddCircle(base.Scalar(cx), base.Scalar(cy), base.Scalar(30), enums.PathDirectionCW)
 			}
 			evenOddComplexPaint := skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 150, A: 255})
 			c.DrawPath(evenOddComplexPath, evenOddComplexPaint)

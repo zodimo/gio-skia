@@ -9,6 +9,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/paint"
 	"github.com/zodimo/gio-skia/skia"
+	"github.com/zodimo/go-skia-support/skia/base"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
 )
@@ -77,9 +78,9 @@ func Run(window *app.Window) error {
 			c.Translate(startX+spacing, startY)
 
 			// Create matrices and multiply them
-			translateMatrix := impl.NewMatrixTranslate(models.Scalar(30), models.Scalar(0))
+			translateMatrix := impl.NewMatrixTranslate(base.Scalar(30), base.Scalar(0))
 			rotateMatrix := impl.NewMatrixRotate(45)
-			scaleMatrix := impl.NewMatrixScale(models.Scalar(1.5), models.Scalar(1.5))
+			scaleMatrix := impl.NewMatrixScale(base.Scalar(1.5), base.Scalar(1.5))
 
 			// Multiply: scale * rotate * translate
 			resultMatrix := impl.NewMatrixIdentity()
@@ -100,8 +101,8 @@ func Run(window *app.Window) error {
 
 			// Create a transformation
 			transformMatrix := impl.NewMatrixRotate(30)
-			transformMatrix.PreTranslate(models.Scalar(40), models.Scalar(0))
-			transformMatrix.PreScale(models.Scalar(1.5), models.Scalar(1.5))
+			transformMatrix.PreTranslate(base.Scalar(40), base.Scalar(0))
+			transformMatrix.PreScale(base.Scalar(1.5), base.Scalar(1.5))
 
 			// Apply transformation
 			c.Save()
@@ -132,15 +133,15 @@ func Run(window *app.Window) error {
 
 			// Create transformation matrix
 			mapMatrix := impl.NewMatrixRotate(60)
-			mapMatrix.PreScale(models.Scalar(1.2), models.Scalar(1.2))
-			mapMatrix.PreTranslate(models.Scalar(20), models.Scalar(10))
+			mapMatrix.PreScale(base.Scalar(1.2), base.Scalar(1.2))
+			mapMatrix.PreTranslate(base.Scalar(20), base.Scalar(10))
 
 			// Map points
 			originalPoints := []models.Point{
-				{X: models.Scalar(-20), Y: models.Scalar(-20)},
-				{X: models.Scalar(20), Y: models.Scalar(-20)},
-				{X: models.Scalar(20), Y: models.Scalar(20)},
-				{X: models.Scalar(-20), Y: models.Scalar(20)},
+				{X: base.Scalar(-20), Y: base.Scalar(-20)},
+				{X: base.Scalar(20), Y: base.Scalar(-20)},
+				{X: base.Scalar(20), Y: base.Scalar(20)},
+				{X: base.Scalar(-20), Y: base.Scalar(20)},
 			}
 
 			// Draw original points
@@ -177,7 +178,7 @@ func Run(window *app.Window) error {
 			c.Restore()
 
 			// Translate-only matrix
-			translateOnlyMatrix := impl.NewMatrixTranslate(models.Scalar(40), models.Scalar(0))
+			translateOnlyMatrix := impl.NewMatrixTranslate(base.Scalar(40), base.Scalar(0))
 			c.Save()
 			c.Concat(translateOnlyMatrix)
 			translateOnlyPath := skia.NewPath()
@@ -194,9 +195,9 @@ func Run(window *app.Window) error {
 
 			// Build a complex transformation chain
 			chainMatrix := impl.NewMatrixIdentity()
-			chainMatrix.SetConcat(impl.NewMatrixTranslate(models.Scalar(30), models.Scalar(0)), chainMatrix)
+			chainMatrix.SetConcat(impl.NewMatrixTranslate(base.Scalar(30), base.Scalar(0)), chainMatrix)
 			chainMatrix.SetConcat(impl.NewMatrixRotate(45), chainMatrix)
-			chainMatrix.SetConcat(impl.NewMatrixScale(models.Scalar(1.3), models.Scalar(1.3)), chainMatrix)
+			chainMatrix.SetConcat(impl.NewMatrixScale(base.Scalar(1.3), base.Scalar(1.3)), chainMatrix)
 			chainMatrix.SetConcat(impl.NewMatrixRotate(-15), chainMatrix)
 
 			c.Concat(chainMatrix)
@@ -212,7 +213,7 @@ func Run(window *app.Window) error {
 			c.Translate(startX, startY+spacing*3)
 
 			// Rotate around a pivot point
-			pivotX, pivotY := models.Scalar(30), models.Scalar(30)
+			pivotX, pivotY := base.Scalar(30), base.Scalar(30)
 			pivotMatrix := impl.NewMatrixRotateWithPivot(45, pivotX, pivotY)
 
 			c.Concat(pivotMatrix)
@@ -235,8 +236,8 @@ func Run(window *app.Window) error {
 
 			// Create a complex matrix
 			complexMatrix := impl.NewMatrixRotate(30)
-			complexMatrix.PreScale(models.Scalar(1.5), models.Scalar(0.8))
-			complexMatrix.PreTranslate(models.Scalar(20), models.Scalar(10))
+			complexMatrix.PreScale(base.Scalar(1.5), base.Scalar(0.8))
+			complexMatrix.PreTranslate(base.Scalar(20), base.Scalar(10))
 
 			// Apply matrix
 			c.Concat(complexMatrix)

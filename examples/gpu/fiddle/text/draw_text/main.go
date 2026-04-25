@@ -12,6 +12,7 @@ import (
 	"github.com/zodimo/gio-skia/skia"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/interfaces"
+	"github.com/zodimo/go-skia-support/skia/models"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
@@ -35,7 +36,7 @@ func Run(window *app.Window) error {
 		log.Fatalf("failed to parse font: %v", err)
 	}
 	// Create the typeface
-	typeface := impl.NewTypefaceWithTypefaceFace("regular", impl.FontStyle{}, parsedFont)
+	typeface := impl.NewTypefaceWithTypefaceFace("regular", models.FontStyle{}, parsedFont)
 
 	for {
 		switch e := window.Event().(type) {

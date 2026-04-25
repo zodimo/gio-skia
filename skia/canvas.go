@@ -320,19 +320,19 @@ func (c *canvas) DrawPaint(paint SkPaint) {
 	gpaint.PaintOp{}.Add(c.ops)
 }
 
-func (c *canvas) DrawRect(rect interfaces.Rect, paint SkPaint) {
+func (c *canvas) DrawRect(rect models.Rect, paint SkPaint) {
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddRect(rect, enums.PathDirectionCW, 0)
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawRRect(rrect interfaces.RRect, paint SkPaint) {
+func (c *canvas) DrawRRect(rrect models.RRect, paint SkPaint) {
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddRRect(rrect, enums.PathDirectionCW)
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawDRRect(outer interfaces.RRect, inner interfaces.RRect, paint SkPaint) {
+func (c *canvas) DrawDRRect(outer models.RRect, inner models.RRect, paint SkPaint) {
 	// Draw "donut" - outer minus inner using even-odd fill
 	path := impl.NewSkPath(enums.PathFillTypeEvenOdd)
 	path.AddRRect(outer, enums.PathDirectionCW)
@@ -340,13 +340,13 @@ func (c *canvas) DrawDRRect(outer interfaces.RRect, inner interfaces.RRect, pain
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawOval(oval interfaces.Rect, paint SkPaint) {
+func (c *canvas) DrawOval(oval models.Rect, paint SkPaint) {
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddOval(oval, enums.PathDirectionCW)
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawArc(oval interfaces.Rect, startAngle, sweepAngle Scalar, useCenter bool, paint SkPaint) {
+func (c *canvas) DrawArc(oval models.Rect, startAngle, sweepAngle Scalar, useCenter bool, paint SkPaint) {
 	if sweepAngle == 0 {
 		return
 	}
@@ -365,13 +365,13 @@ func (c *canvas) DrawArc(oval interfaces.Rect, startAngle, sweepAngle Scalar, us
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawCircle(center interfaces.Point, radius Scalar, paint SkPaint) {
+func (c *canvas) DrawCircle(center models.Point, radius Scalar, paint SkPaint) {
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddCircle(center.X, center.Y, radius, enums.PathDirectionCW)
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawPoints(mode enums.PointMode, points []interfaces.Point, paint SkPaint) {
+func (c *canvas) DrawPoints(mode enums.PointMode, points []models.Point, paint SkPaint) {
 	if len(points) < 1 {
 		return
 	}
@@ -405,8 +405,8 @@ func (c *canvas) DrawPoints(mode enums.PointMode, points []interfaces.Point, pai
 	c.DrawPath(path, paint)
 }
 
-func (c *canvas) DrawLine(p0, p1 interfaces.Point, paint SkPaint) {
-	c.DrawPoints(enums.PointModeLines, []interfaces.Point{p0, p1}, paint)
+func (c *canvas) DrawLine(p0, p1 models.Point, paint SkPaint) {
+	c.DrawPoints(enums.PointModeLines, []models.Point{p0, p1}, paint)
 }
 
 // ── Image Drawing ───────────────────────────────────────────────────
@@ -448,7 +448,7 @@ func (c *canvas) DrawImage(image interfaces.SkImage, left, top Scalar, paint SkP
 	clipRect.Pop()
 }
 
-func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *interfaces.Rect, dst interfaces.Rect, paint SkPaint) {
+func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *models.Rect, dst models.Rect, paint SkPaint) {
 	if skImg == nil {
 		return
 	}
@@ -460,11 +460,11 @@ func (c *canvas) DrawImageRect(skImg interfaces.SkImage, src *interfaces.Rect, d
 	}
 
 	// Calculate the source rect (if nil, use full image)
-	var srcRect interfaces.Rect
+	var srcRect models.Rect
 	if src != nil {
 		srcRect = *src
 	} else {
-		srcRect = interfaces.Rect{
+		srcRect = models.Rect{
 			Left:   0,
 			Top:    0,
 			Right:  Scalar(skImg.Width()),
@@ -554,14 +554,14 @@ func (c *canvas) skImageToGoImage(skImg interfaces.SkImage) *image.RGBA {
 
 // ── Clipping ───────────────────────────────────────────────────
 
-func (c *canvas) ClipRect(rect interfaces.Rect, clipOp enums.ClipOp, doAntiAlias bool) {
+func (c *canvas) ClipRect(rect models.Rect, clipOp enums.ClipOp, doAntiAlias bool) {
 	// Build the clip path
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddRect(rect, enums.PathDirectionCW, 0)
 	c.clipPathInternal(path, clipOp, doAntiAlias)
 }
 
-func (c *canvas) ClipRRect(rrect interfaces.RRect, clipOp enums.ClipOp, doAntiAlias bool) {
+func (c *canvas) ClipRRect(rrect models.RRect, clipOp enums.ClipOp, doAntiAlias bool) {
 	// Build clip path from RRect
 	path := impl.NewSkPath(enums.PathFillTypeWinding)
 	path.AddRRect(rrect, enums.PathDirectionCW)
@@ -599,7 +599,7 @@ func (c *canvas) buildPathClip(path SkPath) clip.Op {
 	verbs := make([]enums.PathVerb, path.CountVerbs())
 	path.GetVerbs(verbs)
 
-	points := make([]interfaces.Point, path.CountPoints())
+	points := make([]models.Point, path.CountPoints())
 	path.GetPoints(points)
 	conicWeights := path.ConicWeights()
 

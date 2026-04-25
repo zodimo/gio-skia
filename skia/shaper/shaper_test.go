@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-text/typesetting/font"
+	"github.com/zodimo/go-skia-support/skia/base"
 	"github.com/zodimo/go-skia-support/skia/interfaces"
 	"github.com/zodimo/go-skia-support/skia/models"
 
@@ -34,15 +35,15 @@ func (m *MockFont) Typeface() interfaces.SkTypeface {
 	return m.typeface
 }
 
-func (m *MockFont) Size() models.Scalar {
-	return models.Scalar(m.size)
+func (m *MockFont) Size() base.Scalar {
+	return base.Scalar(m.size)
 }
 
-func (m *MockFont) ScaleX() models.Scalar {
+func (m *MockFont) ScaleX() base.Scalar {
 	return 1.0 // Default scale
 }
 
-func (m *MockFont) SkewX() models.Scalar {
+func (m *MockFont) SkewX() base.Scalar {
 	return 0.0 // Default skew
 }
 

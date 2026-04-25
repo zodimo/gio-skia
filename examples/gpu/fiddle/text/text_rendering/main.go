@@ -37,7 +37,7 @@ func Run(window *app.Window) error {
 	if err != nil {
 		log.Fatalf("failed to parse font: %v", err)
 	}
-	typeface := impl.NewTypefaceWithTypefaceFace("regular", impl.FontStyle{}, parsedFont)
+	typeface := impl.NewTypefaceWithTypefaceFace("regular", models.FontStyle{}, parsedFont)
 
 	// Create fonts
 	// SkFont font1(typeface, 64.0f, 1.0f, 0.0f);

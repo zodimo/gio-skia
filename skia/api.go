@@ -2,8 +2,8 @@
 package skia
 
 import (
+	"github.com/zodimo/go-skia-support/skia/base"
 	"github.com/zodimo/go-skia-support/skia/interfaces"
-	"github.com/zodimo/go-skia-support/skia/models"
 	"github.com/zodimo/go-skia-support/skia/shaper"
 )
 
@@ -48,7 +48,7 @@ type Feature = shaper.Feature
 type Range = shaper.Range
 
 // Scalar is a floating-point value used for coordinates, dimensions, and angles.
-type Scalar = models.Scalar
+type Scalar = base.Scalar
 
 // SkPath represents a path that can be drawn on a canvas.
 // This is an alias for go-skia-support's SkPath interface.

@@ -9,9 +9,9 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/paint"
 	"github.com/zodimo/gio-skia/skia"
+	"github.com/zodimo/go-skia-support/skia/base"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
-	"github.com/zodimo/go-skia-support/skia/models"
 )
 
 // This example demonstrates the difference between AddPathModeAppend and AddPathModeExtend
@@ -48,15 +48,15 @@ func Run(window *app.Window) error {
 
 			// Create path1: triangle shape
 			path1 := impl.NewSkPath(enums.PathFillTypeWinding)
-			path1.MoveTo(models.Scalar(20), models.Scalar(20))
-			path1.LineTo(models.Scalar(20), models.Scalar(40))
-			path1.LineTo(models.Scalar(40), models.Scalar(20))
+			path1.MoveTo(base.Scalar(20), base.Scalar(20))
+			path1.LineTo(base.Scalar(20), base.Scalar(40))
+			path1.LineTo(base.Scalar(40), base.Scalar(20))
 
 			// Create path2: L-shape
 			path2 := impl.NewSkPath(enums.PathFillTypeWinding)
-			path2.MoveTo(models.Scalar(60), models.Scalar(60))
-			path2.LineTo(models.Scalar(80), models.Scalar(60))
-			path2.LineTo(models.Scalar(80), models.Scalar(40))
+			path2.MoveTo(base.Scalar(60), base.Scalar(60))
+			path2.LineTo(base.Scalar(80), base.Scalar(60))
+			path2.LineTo(base.Scalar(80), base.Scalar(40))
 
 			// Create stroke paint
 			paint := skia.NewPaintStroke(color.NRGBA{R: 0, G: 0, B: 0, A: 255}, 2)
@@ -67,16 +67,16 @@ func Run(window *app.Window) error {
 				for _, addPathMode := range []enums.AddPathMode{enums.AddPathModeAppend, enums.AddPathModeExtend} {
 					// Create a new path based on path1
 					testPath := impl.NewSkPath(enums.PathFillTypeWinding)
-					testPath.MoveTo(models.Scalar(20), models.Scalar(20))
-					testPath.LineTo(models.Scalar(20), models.Scalar(40))
-					testPath.LineTo(models.Scalar(40), models.Scalar(20))
+					testPath.MoveTo(base.Scalar(20), base.Scalar(20))
+					testPath.LineTo(base.Scalar(20), base.Scalar(40))
+					testPath.LineTo(base.Scalar(40), base.Scalar(20))
 					if i == 1 {
 						// Close path1 for the second iteration
 						testPath.Close()
 					}
 
 					// Add path2 using the specified mode
-					testPath.AddPath(path2, models.Scalar(0), models.Scalar(0), addPathMode)
+					testPath.AddPath(path2, base.Scalar(0), base.Scalar(0), addPathMode)
 
 					// Draw the combined path
 					c.DrawPath(testPath, paint)

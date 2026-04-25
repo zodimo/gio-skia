@@ -9,6 +9,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/paint"
 	"github.com/zodimo/gio-skia/skia"
+	"github.com/zodimo/go-skia-support/skia/base"
 	"github.com/zodimo/go-skia-support/skia/enums"
 	"github.com/zodimo/go-skia-support/skia/impl"
 	"github.com/zodimo/go-skia-support/skia/models"
@@ -57,7 +58,7 @@ func Run(window *app.Window) error {
 				models.Rect{Left: -30, Top: -30, Right: 30, Bottom: 30},
 				enums.PathDirectionCW, 0)
 			// Add a circle
-			combinedPath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(25), enums.PathDirectionCW)
+			combinedPath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(25), enums.PathDirectionCW)
 
 			combinedPaint := skia.NewPaintFill(color.NRGBA{R: 100, G: 150, B: 255, A: 255})
 			c.DrawPath(combinedPath, combinedPaint)
@@ -76,7 +77,7 @@ func Run(window *app.Window) error {
 
 			// Transform the path using matrix
 			transformMatrix := impl.NewMatrixRotate(45)
-			transformMatrix.PreTranslate(models.Scalar(0), models.Scalar(0))
+			transformMatrix.PreTranslate(base.Scalar(0), base.Scalar(0))
 			transformedPath := impl.NewSkPath(enums.PathFillTypeWinding)
 			transformedPath.AddPathMatrix(basePath, transformMatrix, enums.AddPathModeAppend)
 
@@ -91,14 +92,14 @@ func Run(window *app.Window) error {
 
 			// Create original path
 			originalPath := impl.NewSkPath(enums.PathFillTypeWinding)
-			originalPath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(20), enums.PathDirectionCW)
+			originalPath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(20), enums.PathDirectionCW)
 
 			// Create offset paths
 			offsetPath1 := impl.NewSkPath(enums.PathFillTypeWinding)
-			offsetPath1.AddPath(originalPath, models.Scalar(-25), models.Scalar(0), enums.AddPathModeAppend)
+			offsetPath1.AddPath(originalPath, base.Scalar(-25), base.Scalar(0), enums.AddPathModeAppend)
 
 			offsetPath2 := impl.NewSkPath(enums.PathFillTypeWinding)
-			offsetPath2.AddPath(originalPath, models.Scalar(25), models.Scalar(0), enums.AddPathModeAppend)
+			offsetPath2.AddPath(originalPath, base.Scalar(25), base.Scalar(0), enums.AddPathModeAppend)
 
 			// Draw original
 			originalPaint := skia.NewPaintFill(color.NRGBA{R: 200, G: 200, B: 200, A: 255})
@@ -122,10 +123,10 @@ func Run(window *app.Window) error {
 				models.Rect{Left: -30, Top: -30, Right: 30, Bottom: 30},
 				enums.PathDirectionCW, 0)
 			// Add circles at corners
-			complexPath.AddCircle(models.Scalar(-20), models.Scalar(-20), models.Scalar(10), enums.PathDirectionCW)
-			complexPath.AddCircle(models.Scalar(20), models.Scalar(-20), models.Scalar(10), enums.PathDirectionCW)
-			complexPath.AddCircle(models.Scalar(-20), models.Scalar(20), models.Scalar(10), enums.PathDirectionCW)
-			complexPath.AddCircle(models.Scalar(20), models.Scalar(20), models.Scalar(10), enums.PathDirectionCW)
+			complexPath.AddCircle(base.Scalar(-20), base.Scalar(-20), base.Scalar(10), enums.PathDirectionCW)
+			complexPath.AddCircle(base.Scalar(20), base.Scalar(-20), base.Scalar(10), enums.PathDirectionCW)
+			complexPath.AddCircle(base.Scalar(-20), base.Scalar(20), base.Scalar(10), enums.PathDirectionCW)
+			complexPath.AddCircle(base.Scalar(20), base.Scalar(20), base.Scalar(10), enums.PathDirectionCW)
 
 			complexPaint := skia.NewPaintFill(color.NRGBA{R: 255, G: 100, B: 200, A: 255})
 			c.DrawPath(complexPath, complexPaint)
@@ -143,7 +144,7 @@ func Run(window *app.Window) error {
 				models.Rect{Left: -40, Top: -40, Right: 40, Bottom: 40},
 				enums.PathDirectionCW, 0)
 			// Inner hole (counter-clockwise)
-			holePath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(20), enums.PathDirectionCCW)
+			holePath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(20), enums.PathDirectionCCW)
 
 			holePaint := skia.NewPaintFill(color.NRGBA{R: 150, G: 200, B: 255, A: 255})
 			c.DrawPath(holePath, holePaint)
@@ -157,12 +158,12 @@ func Run(window *app.Window) error {
 			// Create path with multiple separate contours
 			multiContourPath := impl.NewSkPath(enums.PathFillTypeWinding)
 			// First contour: triangle
-			multiContourPath.MoveTo(models.Scalar(-30), models.Scalar(20))
-			multiContourPath.LineTo(models.Scalar(0), models.Scalar(-20))
-			multiContourPath.LineTo(models.Scalar(30), models.Scalar(20))
+			multiContourPath.MoveTo(base.Scalar(-30), base.Scalar(20))
+			multiContourPath.LineTo(base.Scalar(0), base.Scalar(-20))
+			multiContourPath.LineTo(base.Scalar(30), base.Scalar(20))
 			multiContourPath.Close()
 			// Second contour: circle
-			multiContourPath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(15), enums.PathDirectionCW)
+			multiContourPath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(15), enums.PathDirectionCW)
 
 			multiContourPaint := skia.NewPaintFill(color.NRGBA{R: 255, G: 200, B: 100, A: 255})
 			c.DrawPath(multiContourPath, multiContourPaint)
@@ -175,7 +176,7 @@ func Run(window *app.Window) error {
 
 			// Create a path
 			boundsPath := impl.NewSkPath(enums.PathFillTypeWinding)
-			boundsPath.AddCircle(models.Scalar(0), models.Scalar(0), models.Scalar(30), enums.PathDirectionCW)
+			boundsPath.AddCircle(base.Scalar(0), base.Scalar(0), base.Scalar(30), enums.PathDirectionCW)
 
 			// Get bounds
 			bounds := boundsPath.Bounds()
@@ -200,16 +201,16 @@ func Run(window *app.Window) error {
 
 			// Create a path using Bézier curves
 			bezierPath := impl.NewSkPath(enums.PathFillTypeWinding)
-			bezierPath.MoveTo(models.Scalar(-30), models.Scalar(0))
+			bezierPath.MoveTo(base.Scalar(-30), base.Scalar(0))
 			// Cubic Bézier curve
 			bezierPath.CubicTo(
-				models.Scalar(-20), models.Scalar(-20),
-				models.Scalar(20), models.Scalar(-20),
-				models.Scalar(30), models.Scalar(0))
+				base.Scalar(-20), base.Scalar(-20),
+				base.Scalar(20), base.Scalar(-20),
+				base.Scalar(30), base.Scalar(0))
 			bezierPath.CubicTo(
-				models.Scalar(20), models.Scalar(20),
-				models.Scalar(-20), models.Scalar(20),
-				models.Scalar(-30), models.Scalar(0))
+				base.Scalar(20), base.Scalar(20),
+				base.Scalar(-20), base.Scalar(20),
+				base.Scalar(-30), base.Scalar(0))
 			bezierPath.Close()
 
 			bezierPaint := skia.NewPaintFill(color.NRGBA{R: 200, G: 100, B: 255, A: 255})

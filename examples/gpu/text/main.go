@@ -43,7 +43,7 @@ func Run(window *app.Window) error {
 	if err != nil {
 		log.Fatalf("failed to parse font: %v", err)
 	}
-	typeface := impl.NewTypefaceWithTypefaceFace("regular", impl.FontStyle{}, parsedFont)
+	typeface := impl.NewTypefaceWithTypefaceFace("regular", models.FontStyle{}, parsedFont)
 
 	smallFont := impl.NewFontWithTypefaceAndSize(typeface, 16)
 	mediumFont := impl.NewFontWithTypefaceAndSize(typeface, 24)
